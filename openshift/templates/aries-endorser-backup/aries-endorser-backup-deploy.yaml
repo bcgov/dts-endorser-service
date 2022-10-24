@@ -67,7 +67,8 @@ objects:
       annotations:
         description: Defines how to deploy the application server
         app.openshift.io/connects-to: >-
-          [{"apiVersion":"apps.openshift.io/v1","kind":"DeploymentConfig","name":"${WALLET_DB_HOST}${SUFFIX}"}]
+          [{"apiVersion":"apps.openshift.io/v1","kind":"DeploymentConfig","name":"${ARIES_ENDORSER_DB_HOST}${SUFFIX}"},
+          {"apiVersion":"apps.openshift.io/v1","kind":"DeploymentConfig","name":"${ARIES_ENDORSER_WALLET_HOST}${SUFFIX}"}]
     spec:
       strategy:
         type: Recreate
