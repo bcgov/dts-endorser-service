@@ -246,7 +246,7 @@ objects:
                   subPath: ${CADDY_CONFIG_FILE_NAME}
 
   - kind: HorizontalPodAutoscaler
-    apiVersion: autoscaling/v2beta2
+    apiVersion: autoscaling/v2
     metadata:
       name: ${NAME}${SUFFIX}
       labels:
