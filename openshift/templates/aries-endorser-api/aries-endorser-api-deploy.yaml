@@ -176,12 +176,20 @@ objects:
 
                 - name: ENDORSER_ENV
                   value: ${TAG_NAME}
+                - name: ENDORSER_PUBLIC_NAME
+                  value: ${ENDORSER_PUBLIC_NAME}
+                - name: ENDORSER_PUBLIC_DESC
+                  value: ${ENDORSER_PUBLIC_DESC}
+
                 - name: ENDORSER_AUTO_ACCEPT_CONNECTIONS
                   value: ${ENDORSER_AUTO_ACCEPT_CONNECTIONS}
                 - name: ENDORSER_AUTO_ACCEPT_AUTHORS
                   value: ${ENDORSER_AUTO_ACCEPT_AUTHORS}
                 - name: ENDORSER_AUTO_ENDORSE_REQUESTS
                   value: ${ENDORSER_AUTO_ENDORSE_REQUESTS}
+                - name: ENDORSER_AUTO_ENDORSE_TXN_TYPES
+                  value: ${ENDORSER_AUTO_ENDORSE_TXN_TYPES}
+
                 - name: WEB_CONCURRENCY
                   value: ${WEB_CONCURRENCY}
 
@@ -231,7 +239,7 @@ objects:
               namespace: ${IMAGE_NAMESPACE}
 
   - kind: HorizontalPodAutoscaler
-    apiVersion: autoscaling/v2beta2
+    apiVersion: autoscaling/v2
     metadata:
       name: ${NAME}${SUFFIX}
       labels:
@@ -264,7 +272,7 @@ objects:
       behavior:
         scaleDown:
           stabilizationWindowSeconds: 300
-                        
+
 parameters:
   - name: NAME
     displayName: Name
@@ -356,6 +364,18 @@ parameters:
     description: The admin url of the endorser aca-py agent
     required: true
     value: "http://aries-endorser-agent:8051"
+
+  - name: ENDORSER_PUBLIC_NAME
+    displayName: Endorser Public Name
+    description: The name of the endorser service to display on the API docs page.
+    required: true
+    value: "BC Endorser Service"
+  - name: ENDORSER_PUBLIC_DESC
+    displayName: Endorser Public Description
+    description: The description of the endorser service to display on the API docs page.
+    required: true
+    value: "An endorser service for BC issuer agents"
+
   - name: ENDORSER_AUTO_ACCEPT_CONNECTIONS
     displayName: Connection Auto-accept Flag
     description: Flag to specify whether to globally auto-accept connection requests
@@ -371,6 +391,14 @@ parameters:
     description: Flag to specify whether to globally auto-endorse transactions
     required: true
     value: "false"
+  - name: ENDORSER_AUTO_ENDORSE_TXN_TYPES
+    displayName: Auto Endorse Txn Types
+    description: 
+      CSV string defining the Txn types to auto endorse.  For example, "1,100,101,102,113,114", "" for all.
+      Works in conjunction with ENDORSER_AUTO_ENDORSE_REQUESTS.
+    required: false
+    value: ""
+
   - name: ACAPY_WEBHOOK_URL_API_KEY
     displayName: Aca-py Webhook API Key
     description: The API key aca-py will include in webhook notifications
@@ -392,7 +420,7 @@ parameters:
     displayName: Maximum Replicas
     description: The maximum number of pods to have running.
     required: true
-    value: "6"    
+    value: "6"
 
   - name: CPU_REQUEST
     displayName: Resources CPU Request
@@ -413,4 +441,4 @@ parameters:
     displayName: Resources Memory Limit
     description: The resources Memory limit (in Mi, Gi, etc) for this build.
     required: true
-    value: 1Gi
+    value: 512Mi
