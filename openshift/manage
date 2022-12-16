@@ -1,0 +1,636 @@
+#!/bin/bash
+export MSYS_NO_PATHCONV=1
+SCRIPT_HOME="$( cd "$( dirname "$0" )" && pwd )"
+
+function isInstalled () {
+  rtnVal=$(type "$1" >/dev/null 2>&1)
+  rtnCd=$?
+  if [ ${rtnCd} -ne 0 ]; then
+    return 1
+  else
+    return 0
+  fi
+}
+
+function isCurlInstalled () {
+  CURL_EXE=curl
+  if ! isInstalled ${CURL_EXE}; then
+    echoError "The ${CURL_EXE} executable is required and was not found on your path."
+    echoError "If your shell of choice doesn't come with curl preinstalled, try installing it using either [Homebrew](https://brew.sh/) (MAC) or [Chocolatey](https://chocolatey.org/) (Windows)."
+    exit 1
+  fi
+}
+
+function isJQInstalled () {
+  JQ_EXE=jq
+  if ! isInstalled ${JQ_EXE}; then
+    echoError "The ${JQ_EXE} executable is required and was not found on your path."
+    echoError "Installation instructions can be found here: https://stedolan.github.io/jq/download"
+    echoError "Alternatively, a package manager such as Chocolatey (Windows) or Brew (Mac) can be used to install this dependecy."
+    exit 1
+  fi
+}
+
+# =================================================================================================================
+# Usage:
+# -----------------------------------------------------------------------------------------------------------------
+usage () {
+  cat <<-EOF
+
+  Allows you to manage certain aspects of project environment.
+
+  Usage:
+    $0 [options] [commands]
+
+  Commands:
+  ========
+    registerAuthor [options]
+
+      Examples:
+        ${0} -e null registerAuthor
+          - Register an author with an endorser service.
+          - You will be asked to enter the information about the author and endorser you want to connect together.
+          - The -e (environment) flag is ignored by this command.
+
+        ${0} -e null registerAuthor -f ./inputdata
+          - Register an author with an endorser service.
+          - Specify the input file that contains the input data.
+          - The -e (environment) flag is ignored by this command.
+
+        ${0} -e null registerAuthor -i ./myinputdata
+          - Write inputs to an input file and exit.  Provides a way to seed an input file.
+          - The -e (environment) flag is ignored by this command.
+
+    clean
+      - Remove the application components from a given environment.
+        Specify the environment using the -e option.
+
+    delete
+      - Delete allapplication components from a given environment.
+        Specify the environment using the -e option.
+
+    scaleUp
+      - Scale up one or more pods.
+        Example;
+          $0 -e prod scaleUp aries-endorser-proxy
+
+    scaleDown
+      - Scale down one or more pods.
+        Example;
+          $0 -e prod scaleDown aries-endorser-proxy
+
+    recycle
+      - Recycle one or more pods.
+        Example;
+          $0 -e prod recycle aries-endorser-proxy
+EOF
+}
+
+# =================================================================================================================
+# Process the local command line arguments and pass everything else along.
+# - The 'getopts' options string must start with ':' for this to work.
+# -----------------------------------------------------------------------------------------------------------------
+while [ ${OPTIND} -le $# ]; do
+  if getopts :s: FLAG; then
+    case ${FLAG} in
+      # List of local options:
+      s ) resourceSuffix=$OPTARG ;;
+
+      # Pass unrecognized options ...
+      \?) pass+=" -${OPTARG}" ;;
+    esac
+  else
+    # Pass unrecognized arguments ...
+    pass+=" ${!OPTIND}"
+    let OPTIND++
+  fi
+done
+
+# Pass the unrecognized arguments along for further processing ...
+shift $((OPTIND-1))
+set -- "$@" $(echo -e "${pass}" | sed -e 's/^[[:space:]]*//')
+# =================================================================================================================
+
+# -----------------------------------------------------------------------------------------------------------------
+# Define hook scripts:
+# - These must be defined before the main settings script 'settings.sh' is loaded.
+# -----------------------------------------------------------------------------------------------------------------
+onRequiredOptionsExist() {
+  (
+    if [ -z "${DEPLOYMENT_ENV_NAME}" ]; then
+      _red='\033[0;31m'
+      _nc='\033[0m' # No Color
+          echo -e "\n${_red}You MUST specify an environment name using the '-e' flag.${_nc}"
+          echo -e "${_red}Assuming a default would have unwanted consequences.${_nc}\n"
+          return 1
+        else
+          return 0
+    fi
+  )
+}
+
+onUsesCommandLineArguments() {
+  (
+    # This script is expecting command line arguments to be passed ...
+    return 0
+  )
+}
+
+# -----------------------------------------------------------------------------------------------------------------
+# Initialization:
+# -----------------------------------------------------------------------------------------------------------------
+# Load the project settings and functions ...
+_includeFile="ocFunctions.inc"
+_settingsFile="settings.sh"
+if [ ! -z $(type -p ${_includeFile}) ]; then
+  _includeFilePath=$(type -p ${_includeFile})
+  export OCTOOLSBIN=$(dirname ${_includeFilePath})
+
+  if [ -f ${OCTOOLSBIN}/${_settingsFile} ]; then
+    . ${OCTOOLSBIN}/${_settingsFile}
+  fi
+
+  if [ -f ${OCTOOLSBIN}/${_includeFile} ]; then
+    . ${OCTOOLSBIN}/${_includeFile}
+  fi
+else
+  _red='\033[0;31m'
+  _yellow='\033[1;33m'
+  _nc='\033[0m' # No Color
+  echo -e \\n"${_red}${_includeFile} could not be found on the path.${_nc}"
+  echo -e "${_yellow}Please ensure the openshift-developer-tools are installed on and registered on your path.${_nc}"
+  echo -e "${_yellow}https://github.com/BCDevOps/openshift-developer-tools${_nc}"
+fi
+
+# -----------------------------------------------------------------------------------------------------------------
+# Functions:
+# -----------------------------------------------------------------------------------------------------------------
+function deleteResources() {
+  (
+    _appName=${1}
+    if [ -z "${_appName}" ]; then
+      echoError "\ncleanResources; You MUST specify the name of the application group.\n"
+      exit 1
+    fi
+
+    printAndAskToContinue "If you contiune all of the resources for '${_appName}' will be deleted.  All data will be lost."
+    oc -n $(getProjectName) delete all,secret,pvc,configmap,NetworkPolicy -l app-group=${_appName}
+  )
+}
+
+function cleanResources() {
+  (
+    _appName=${1}
+    if [ -z "${_appName}" ]; then
+      echoError "\ncleanResources; You MUST specify the name of the application group.\n"
+      exit 1
+    fi
+
+    echoWarning "Cleaning out resources for '${_appName}'.  Secrets and PVCs will be retained."
+    oc -n $(getProjectName) delete all,configmap,NetworkPolicy -l app-group=${_appName}
+  )
+}
+
+function getSetting() {
+  namespace=${1}
+  dcName=${2}
+  settingName=${3}
+  deploymentConfig=$(oc -n ${namespace} get dc ${dcName} -o json)
+  setting=$(${JQ_EXE} -nr "${deploymentConfig} | .spec.template.spec.containers[].env[] | select(.name==\"${settingName}\") | .value")
+  echo "${setting}"
+}
+
+readParameter() {
+  _msg=${1}
+  _paramName=${2}
+  _defaultValue=${3}
+  _filename=${4}
+
+  echoWarning "${_msg}"
+  read -r -p $"${_message}" ${_paramName}
+  echo "${_paramName}=\"${!_paramName:-${_defaultValue}}\"" >> ${_filename}
+}
+
+function getInputData() {
+  filename=${1}
+
+  DEFAULT_ENDORSER_API_USER=endorser-admin
+  DEFAULT_AUTHOR_STATUS=Active
+  DEFAULT_ENDORSER_STATUS=AutoEndorse
+
+  echo "# Author Settings:" > ${filename}
+  echoWarning "\nPlease enter the following author settings:\n"
+  readParameter "- The URL for the author's agent admin endpoint." "authorUrl" "" "${filename}"
+  readParameter "- The author's instance name." "authorInstanceName" "" "${filename}"
+  readParameter "- The author's secret name.  Default is ${authorInstanceName}" "authorSecretName" "${authorInstanceName}" "${filename}"
+  readParameter "- The author's secret key name." "authorSecretKey" "" "${filename}"
+  readParameter "- The namespace in which the author is hosted." "authorNamespace" "" "${filename}"
+  echo "" >> ${filename}
+
+  echo "# Endorser Settings:" >> ${filename}
+  echoWarning "Please enter the following endorser service settings:\n"
+  readParameter "- The URL for the endorser service endpoint." "endorserUrl" "" "${filename}"
+  readParameter "- The endorser service api instance name." "endorserInstanceName" "" "${filename}"
+  readParameter "- The endorser service api secret name.  Default is ${endorserInstanceName}" "endorserSecretName" "${endorserInstanceName}" "${filename}"
+  readParameter "- The endorser service api secret key name." "endorserSecretKey" "" "${filename}"
+  readParameter "- The namespace in which the endorser service is hosted." "endorserNamespace" "" "${filename}"
+  readParameter "- The username to use with the endorser api.  The default is ${DEFAULT_ENDORSER_API_USER}." "endorserApiUser" "${DEFAULT_ENDORSER_API_USER}" "${filename}"
+  echo "" >> ${filename}
+
+  echo "# Connection Settings:" >> ${filename}
+  echoWarning "Please enter the following endorser connection settings:\n"
+  readParameter "- The state for the Author's endorser connection.  Options are Active or Suspended.  Default is ${DEFAULT_AUTHOR_STATUS}." "authorStatus" "${DEFAULT_AUTHOR_STATUS}" "${filename}"
+  readParameter "- The endorsement processing setting to use for the Author's endorser connection.  Options are AutoEndorse, ManualEndorse or AutoReject.  Default is ${DEFAULT_ENDORSER_STATUS}." "endorseStatus" "${DEFAULT_ENDORSER_STATUS}" "${filename}"
+}
+
+function registerAuthor() {
+  REQUEST_STATE="request"
+  ACTIVE_STATE="active"
+  AUTHOR_JOB="TRANSACTION_AUTHOR"
+  ENDORSER_JOB="TRANSACTION_ENDORSER"
+  DEFAULT_INPUT_DATA_FILENAME="input_data"
+  inputDataFilename=${DEFAULT_INPUT_DATA_FILENAME}
+
+  local OPTIND
+  unset local inputFileSupplied
+  while getopts i:f: FLAG; do
+    case $FLAG in
+      f )
+        inputDataFilename=${OPTARG}
+        local inputFileSupplied=1
+        ;;
+      i )
+        inputDataFilename=${OPTARG}
+        getInputData "${inputDataFilename}"
+        echoWarning "Input data written to ${inputDataFilename}"
+        echoWarning "\nGoodbye"
+        exit 0
+    esac
+  done
+  shift $((OPTIND-1))
+
+  if [ -z ${inputFileSupplied} ]; then
+    getInputData "${inputDataFilename}"
+  fi
+
+  set -o allexport
+  source "${inputDataFilename}"
+  set +o allexport
+
+  # Lookup the API keys for the author and endorser endpoints.
+  authorApiKey=$(getSecret "${authorSecretName}" "${authorSecretKey}" "${authorNamespace}")
+  endorserApiKey=$(getSecret "${endorserSecretName}" "${endorserSecretKey}" "${endorserNamespace}")
+
+  # Get some info straight from the author config.
+  endorserAlias=$(getSetting "${authorNamespace}" "${authorInstanceName}" "ACAPY_ENDORSER_ALIAS")
+  authorLabel=$(getSetting "${authorNamespace}" "${authorInstanceName}" "ACAPY_LABEL")
+
+  # Register an Author with an endorser service.
+  # Flow:
+  read -r -d '' prerequisiteSteps << EOL
+Settings:
+----------------------------------------------------------------------------------------------------------------------------------
+  - authorUrl:                    ${authorUrl}
+  - authorInstanceName:           ${authorInstanceName}
+  - authorSecretName:             ${authorSecretName}
+  - authorSecretKey:              ${authorSecretKey}
+  - authorNamespace:              ${authorNamespace}
+  - authorLabel:                  ${authorLabel}
+  - endorserAlias (from author):  ${endorserAlias}
+
+  - endorserUrl:                  ${endorserUrl}
+  - endorserInstanceName:         ${endorserInstanceName}
+  - endorserSecretName:           ${endorserSecretName}
+  - endorserSecretKey:            ${endorserSecretKey}
+  - endorserNamespace:            ${endorserNamespace}
+  - endorserApiUser:              ${endorserApiUser}
+
+  - authorStatus:                 ${authorStatus}
+  - endorseStatus:                ${endorseStatus}
+
+Prerequisites:
+----------------------------------------------------------------------------------------------------------------------------------
+  - Ensure the author's agent is configured to be an author on the ledger (role=null)
+  - Make sure all services connected to the author's agent, other than the wallet, are shutdown; controllers, apis, web interfaces.
+  - Ensure the author's agent configuration has been updated to support the endorser protocol settings.
+  - Update the author's agent settings to enable the endorser protocol.
+  - Ensure READ_ONLY_LEDGER=false on the author's agent.
+  - Accept TAA though the author's agent if needed
+    - Switching to multi-ledger breaks existing TAAs
+  - Ensure the author's public endpoint has been written to the ledger.
+EOL
+
+  if ! printAndWaitForYes "Please review the settings carefully and ensure you have performed all prerequisite steps before you continue.\n\n${prerequisiteSteps}\n" ; then
+    echoWarning "\nGoodbye"
+    exit 0
+  fi
+
+  echo -e "Retrieving auth token from ${endorserUrl} ..."
+  endorserTokenJson=$(${CURL_EXE} \
+                    -s \
+                    -X "POST" \
+                    -H "accept: application/json" \
+                    -H "Content-Type: application/x-www-form-urlencoded" \
+                    --data-urlencode "grant_type=" \
+                    --data-urlencode "username=${endorserApiUser}" \
+                    --data-urlencode "password=${endorserApiKey}" \
+                    --data-urlencode "scope=" \
+                    --data-urlencode "client_id=" \
+                    --data-urlencode "client_secret=" \
+                    "${endorserUrl}/endorser/token")
+
+  endorserTokenType=$(${JQ_EXE} -nr "${endorserTokenJson} | .token_type")
+  endorserToken=$(${JQ_EXE} -nr "${endorserTokenJson} | .access_token")
+
+  # ====================================================================================================================================================================
+  # Connecting the Author to the Endorser
+  #   - https://github.com/hyperledger/aries-cloudagent-python/tree/main/demo/docker-agent#connecting-to-an-endorser-service
+  # --------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  echo -e "Retrieving endorser configuration from ${endorserUrl} ..."
+  endorserConfig=$(${CURL_EXE} \
+                      -s \
+                      -X GET \
+                      -H "accept: application/json" \
+                      -H "Authorization: ${endorserTokenType^} ${endorserToken}" \
+                      "${endorserUrl}/endorser/v1/admin/config")
+
+  endoserPublicDid=$(${JQ_EXE} -nr "${endorserConfig} | .endorser_config.public_did.did")
+
+  echo -e "Retrieving author configuration from ${authorUrl} ..."
+  authorConfig=$(${CURL_EXE} \
+                    -s \
+                    -X GET \
+                    -H "accept: application/json" \
+                    -H "X-Api-Key: ${authorApiKey}" \
+                    "${authorUrl}/wallet/did/public")
+  authorPublicDid=$(${JQ_EXE} -nr "${authorConfig} | .result.did")
+
+  # Author Agent: Use the POST /didexchange/create-request to request a connection with the endorser, using the endorser's public DID. 
+  # Set the alias to Endorser - this MUST match the --endorser-alias 'Endorser' setting (in the ngrok-wait.sh script). 
+  # Use the GET /connections endpoint to verify the connection is in request state.
+  # --------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  echo -e "Searching for existing author connections ..."
+  authorConnections=$(${CURL_EXE} \
+                    -s \
+                    -X GET \
+                    -H "accept: application/json" \
+                    -H "X-Api-Key: ${authorApiKey}" \
+                    "${authorUrl}/connections?alias=${endorserAlias}&their_public_did=${endoserPublicDid}&my_did=${authorPublicDid}")
+
+  authorConnectionResults=$(${JQ_EXE} -nr "${authorConnections} | .results | length")
+  if (( ${authorConnectionResults} == 0 )); then
+    echo -e "No existing connection was found.  Sending a connection request from the author to the endorser ..."
+    authorConnection=$(${CURL_EXE} \
+                      -s \
+                      -X POST \
+                      -H "accept: application/json" \
+                      -H "X-Api-Key: ${authorApiKey}" \
+                      "${authorUrl}/didexchange/create-request?their_public_did=${endoserPublicDid}&alias=${endorserAlias}&use_public_did=true")
+  elif (( ${authorConnectionResults} == 1 )); then
+    # Use compact output so subsequent parsing works properly
+    authorConnection=$(${JQ_EXE} -nrc "${authorConnections} | .results[]?")
+    if ! printAndWaitForYes "An existing author connection was found.  Would you like to finish setting up this connection?\n$(echo ${authorConnection} | ${JQ_EXE})" ; then
+      echoWarning "\nGoodbye"
+      exit 0
+    fi
+  else
+    echoWarning "Unable to continue - the author agent returned ${authorConnectionResults} connections matching the query, when only one was expected;\n  - /connections?alias=${endorserAlias}&their_public_did=${endoserPublicDid}&my_did=${authorPublicDid}&their_did=${endoserPublicDid}"
+    if printAndWaitForYes "Would you like to see the results?" ; then
+      echo "${authorConnections}"
+    fi
+    echoWarning "\nGoodbye"
+    exit 1
+  fi
+
+  authorConnectionId=$(${JQ_EXE} -nr "${authorConnection} | .connection_id")
+  authorConnectionState=$(${JQ_EXE} -nr "${authorConnection} | .state")
+
+  # Endorser Service: Use the GET /v1/connections endpoint to see the connection request (state request). 
+  # Using the connection_id, call the POST /connections/{connection_id}/accept endpoint to accept the request. 
+  # Verify that the connection state goes to active.
+  # --------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  echo -e "Locating the matching connection on the endorser side ..."
+  # Look for all connections
+  # ToDo:
+  #  - Deal with mutlple pages
+  endorserConnections=$(${CURL_EXE} \
+                      -s \
+                      -X GET \
+                      -H "accept: application/json" \
+                      -H "Authorization: ${endorserTokenType^} ${endorserToken}" \
+                      "${endorserUrl}/endorser/v1/connections/")
+
+  # Filter initial results by author label
+  # Use compact output so subsequent parsing works properly
+  endorserConnections=$(${JQ_EXE} -nrc "${endorserConnections} | [.connections[] | select(.their_label == \"${authorLabel}\")]")
+  endorserConnectionResults=$(${JQ_EXE} -nr "${endorserConnections} | length")
+
+  if (( ${endorserConnectionResults} == 0 )); then
+    echoWarning "\nUnable to continue - there were no connections found for '${authorLabel}'.  Please review the endorser connections at ${endorserUrl}/endorser/docs/"
+    echoWarning "Check to see if it's a pageing issue, i.e. the expected result does not appear in the first page of the results, this script does not support paging yet."
+    echoWarning "\nGoodbye"
+    exit 1
+  elif (( ${endorserConnectionResults} == 1 )); then
+    # Use compact output so subsequent parsing works properly
+    endorserConnection=$(${JQ_EXE} -nrc "${endorserConnections} | .[]?")
+    if ! printAndWaitForYes "The following endorser connection was found.  Would you like to finish setting up this connection?\n$(echo ${endorserConnection} | ${JQ_EXE})" ; then
+      echoWarning "\nGoodbye"
+      exit 0
+    fi
+  else
+    echoWarning "Unable to continue - the endorser agent returned ${endorserConnectionResults} connections matching '${authorLabel}', when only one was expected."
+    if printAndWaitForYes "Would you like to see the results?"; then
+      echo "${endorserConnections}" | ${JQ_EXE}
+    fi
+    echoWarning "\nGoodbye"
+    exit 1
+  fi
+
+  endorserConnectionId=$(${JQ_EXE} -nr "${endorserConnection} | .connection_id")
+  endorserConnectionState=$(${JQ_EXE} -nr "${endorserConnection} | .state")
+
+  if [[ ${endorserConnectionState} == "${REQUEST_STATE}" ]]; then
+    echo -e "Accepting connection ..."
+    endorserConnectionAcceptResponse=$(${CURL_EXE} \
+                                      -s \
+                                      -X POST \
+                                      -H "accept: application/json" \
+                                      -H "Authorization: ${endorserTokenType^} ${endorserToken}" \
+                                      "${endorserUrl}/endorser/v1/connections/${endorserConnectionId}/accept")
+  elif [[ ${endorserConnectionState} == "${ACTIVE_STATE}" ]]; then
+    echo -e "The endorser connection is already ${ACTIVE_STATE}."
+  else
+    echoWarning "\nUnable to continue - the connection is in the '${endorserConnectionState}' state.  Expecting the connection to be either in the '${REQUEST_STATE}' or '${ACTIVE_STATE}' state."
+    echoWarning "Please review the endorser connections at ${endorserUrl}/endorser/docs/"
+    echoWarning "\nGoodbye"
+    exit 1
+  fi
+
+  if [[ "${endorserConnectionState}" != "${ACTIVE_STATE}" ]]; then
+    printf "Waiting for the endorser connection to become ${ACTIVE_STATE} "
+    while [[ "${endorserConnectionState}" != "${ACTIVE_STATE}" ]]; do
+      printf "."
+      sleep 1
+      endorserConnection=$(${CURL_EXE} \
+                          -s \
+                          -X GET \
+                          -H "accept: application/json" \
+                          -H "Authorization: ${endorserTokenType^} ${endorserToken}" \
+                          "${endorserUrl}/endorser/v1/connections/${endorserConnectionId}")
+      endorserConnectionState=$(${JQ_EXE} -nr "${endorserConnection} | .state")
+    done
+    echo
+  fi
+
+  # Author Agent: Verify the connection state goes to active. 
+  # Use the POST /transactions/{conn_id}/set-endorser-role to set the connection role to TRANSACTION_AUTHOR, 
+  # and then use POST /transactions/{conn_id}/set-endorser-info to set the endorser's alias to Endorser and 
+  # the public DID to the endorser's public DID. Verify the settings using the GET /connections/{conn_id}/meta-data endpoint.
+  # --------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  if [[ "${authorConnectionState}" != "${ACTIVE_STATE}" ]]; then
+    printf "Waiting for the author connection to become ${ACTIVE_STATE} "
+    while [[ "${authorConnectionState}" != "${ACTIVE_STATE}" ]]; do
+      printf "."
+      sleep 1
+      authorConnection=$(${CURL_EXE} \
+                        -s \
+                        -X GET \
+                        -H "accept: application/json" \
+                        -H "X-Api-Key: ${authorApiKey}" \
+                        "${authorUrl}/connections/${authorConnectionId}")
+      authorConnectionState=$(${JQ_EXE} -nr "${authorConnection} | .state")
+    done
+    echo
+  else
+    echo -e "The author connection is already ${ACTIVE_STATE}."
+  fi 
+
+  echo -e "Setting up the roles and endorser information on the author's connection ..."
+  authorSetEndorserRoleResponse=$(${CURL_EXE} \
+                                -s \
+                                -X POST \
+                                -H "accept: application/json" \
+                                -H "X-Api-Key: ${authorApiKey}" \
+                                "${authorUrl}/transactions/${authorConnectionId}/set-endorser-role?transaction_my_job=${AUTHOR_JOB}")
+  authorSetEndorserInfoResponse=$(${CURL_EXE} \
+                                -s \
+                                -X POST \
+                                -H "accept: application/json" \
+                                -H "X-Api-Key: ${authorApiKey}" \
+                                "${authorUrl}/transactions/${authorConnectionId}/set-endorser-info?endorser_did=${endoserPublicDid}&endorser_name=${endorserAlias}")
+  authorGetMetadataResponse=$(${CURL_EXE} \
+                            -s \
+                            -X GET \
+                            -H "accept: application/json" \
+                            -H "X-Api-Key: ${authorApiKey}" \
+                            "${authorUrl}/connections/${authorConnectionId}/metadata")
+
+  transaction_their_job=$(${JQ_EXE} -nr "${authorGetMetadataResponse} | .results.transaction_jobs.transaction_their_job")
+  transaction_my_job=$(${JQ_EXE} -nr "${authorGetMetadataResponse} | .results.transaction_jobs.transaction_my_job")
+  endorser_did=$(${JQ_EXE} -nr "${authorGetMetadataResponse} | .results.endorser_info.endorser_did")
+  endorser_name=$(${JQ_EXE} -nr "${authorGetMetadataResponse} | .results.endorser_info.endorser_name")
+
+  if [[ "${transaction_their_job}" == "${ENDORSER_JOB}" && "${transaction_my_job}" == "${AUTHOR_JOB}" && "${endorser_did}" == "${endoserPublicDid}" && "${endorser_name}" == "${endorserAlias}" ]]; then
+    echo -e "Successfully set up the roles and endorser information on the author's connection ..."
+  else
+    echoWarning "Failed to set up the roles and endorser information on the author's connection.  The following results were unexpected:\n$(echo ${authorGetMetadataResponse} | ${JQ_EXE})"
+    echoWarning "\nExpected:\n  - transaction_their_job: ${transaction_their_job}\n  - transaction_my_job: ${transaction_my_job}\n  - endorser_did: ${endorser_did}\n  - endorser_name: ${endorser_name}"
+    echoWarning "\nPlease review the author connections at ${authorUrl}/api/doc"
+    echoWarning "\nGoodbye"
+    exit 1
+  fi
+
+  echo -e "Successfully established the author's connection to the endorser."
+  # ====================================================================================================================================================================
+
+  # ====================================================================================================================================================================
+  # Endorser Configuration
+  #   - https://github.com/hyperledger/aries-endorser-service#endorser-configuration
+  # --------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+  # PUT /endorser/v1/connections/<connection_id> - sets the alias and (optionally) public DID for the author (not currently used anywhere by the Endorser, but may be useful).
+  # --------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  echo -e "Updating the endorser's connection with additional information about the author ..."
+  endorserConnectionPutResponse=$(${CURL_EXE} \
+                                    -s \
+                                    -X PUT \
+                                    -H "accept: application/json" \
+                                    -H "Authorization: ${endorserTokenType^} ${endorserToken}" \
+                                    "${endorserUrl}/endorser/v1/connections/${endorserConnectionId}?alias=${authorInstanceName}&public_did=${authorPublicDid}")
+
+  # PUT /endorser/v1/connections/<connection_id>/configure - sets processing options for the connection:
+  # author_status - Active or Suspended - if not Active, all requests from this connection will be ignored
+  # endorse_status - AutoEndorse, ManualEndorse or AutoReject - the "auto" options will automatically endorse or refuse endorsement requests (respectively), for the "manual" option the requests must be manually endorsed
+  # --------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  echo -e "Setting the endorser's connection to ${endorseStatus} ..."
+  endorserConnectionConfigureResponse=$(${CURL_EXE} \
+                                      -s \
+                                      -X PUT \
+                                      -H "accept: application/json" \
+                                      -H "Authorization: ${endorserTokenType^} ${endorserToken}" \
+                                      "${endorserUrl}/endorser/v1/connections/${endorserConnectionId}/configure?author_status=${authorStatus}&endorse_status=${endorseStatus}")
+  endorserConnection=$(${CURL_EXE} \
+                      -s \
+                      -X GET \
+                      -H "accept: application/json" \
+                      -H "Authorization: ${endorserTokenType^} ${endorserToken}" \
+                      "${endorserUrl}/endorser/v1/connections/${endorserConnectionId}")
+
+  alias=$(${JQ_EXE} -nr "${endorserConnection} | .alias")
+  author_status=$(${JQ_EXE} -nr "${endorserConnection} | .author_status")
+  endorse_status=$(${JQ_EXE} -nr "${endorserConnection} | .endorse_status")
+  their_public_did=$(${JQ_EXE} -nr "${endorserConnection} | .their_public_did")
+
+  if [[ "${alias}" == "${authorInstanceName}" && "${author_status}" == "${authorStatus}" && "${endorse_status}" == "${endorseStatus}" && "${their_public_did}" == "${authorPublicDid}" ]]; then
+    echoWarning "\nSuccessfully completed the endorser setup."
+    echo -e "\nYou may now startup all of the services connected to the author's agent and ensure it's schemas, cred_defs, revoc_reg_defs, and revoc_reg_entries can be written to the ledger using the endorser service."
+  else
+    echoWarning "Failed to completed the endorser setup.  The following results were unexpected:\n$(echo ${endorserConnection} | ${JQ_EXE})"
+    echoWarning "\nExpected:\n  - alias: ${authorInstanceName}\n  - author_status: ${authorStatus}\n  - endorse_status: ${endorseStatus}\n  - their_public_did: ${authorPublicDid}"
+    echoWarning "Please review the endorser connections at ${endorserUrl}/endorser/docs/"
+    echoWarning "\nGoodbye"
+    exit 1
+  fi
+  # ====================================================================================================================================================================
+}
+# =================================================================================================================
+
+pushd ${SCRIPT_HOME} >/dev/null
+_cmd=$(toLower ${1})
+shift
+
+case "${_cmd}" in
+  clean)
+    appName=${1:-${PROFILE}}
+    cleanResources ${appName}
+    ;;
+
+  delete)
+    appName=${1:-${PROFILE}}
+    deleteResources ${appName}
+    ;;
+
+  registerauthor)
+    isCurlInstalled
+    isJQInstalled
+    
+    registerAuthor ${@}
+    ;;
+
+  scaleup)
+    scaleUp -w $${@}
+    ;;
+  scaledown)
+    scaleDown -w ${@}
+    ;;
+  recycle)
+    recyclePods -w ${@}
+    ;;
+
+  *)
+    echoWarning "Unrecognized command; ${_cmd}"
+    globalUsage
+    ;;
+esac
+
+popd >/dev/null
