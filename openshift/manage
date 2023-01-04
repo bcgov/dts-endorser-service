@@ -386,6 +386,9 @@ EOL
                       -H "accept: application/json" \
                       -H "X-Api-Key: ${authorApiKey}" \
                       "${authorUrl}/didexchange/create-request?their_public_did=${endoserPublicDid}&alias=${endorserAlias}&use_public_did=true")
+    
+    # Give the connection request some time to be registered with the endorser.
+    sleep 5
   elif (( ${authorConnectionResults} == 1 )); then
     # Use compact output so subsequent parsing works properly
     authorConnection=$(${JQ_EXE} -nrc "${authorConnections} | .results[]?")
