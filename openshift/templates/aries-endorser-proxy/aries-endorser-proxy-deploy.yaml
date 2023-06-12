@@ -80,7 +80,7 @@ objects:
         kind: Service
         name: ${NAME}${SUFFIX}
         weight: 100
-  
+
   - kind: Route
     apiVersion: v1
     metadata:
@@ -121,8 +121,8 @@ objects:
           port: ${{CADDY_AGENT_PORT}}
           protocol: TCP
           targetPort: ${{CADDY_AGENT_PORT}}
-        
-        
+
+
         - name: ${NAME}${SUFFIX}-admin
           port: ${{CADDY_AGENT_ADMIN_PORT}}
           protocol: TCP
@@ -214,7 +214,7 @@ objects:
                   port: ${{CADDY_AGENT_ADMIN_PORT}}
               env:
                 - name: ACAPY_AGENT_HOST
-                  value: ${ACAPY_AGENT_HOST}
+                  value: ${ACAPY_AGENT_HOST}${SUFFIX}
                 - name: ACAPY_ADMIN_PORT
                   value: ${ACAPY_ADMIN_PORT}
                 - name: ACAPY_HTTP_PORT
@@ -230,7 +230,7 @@ objects:
                 - name: CADDY_ENDORSER_SERVICE_PORT
                   value: ${CADDY_ENDORSER_SERVICE_PORT}
                 - name: ENDORSER_SERVICE_HOST
-                  value: ${ENDORSER_SERVICE_HOST}
+                  value: ${ENDORSER_SERVICE_HOST}${SUFFIX}
                 - name: ENDORSER_SERVICE_PORT
                   value: ${ENDORSER_SERVICE_PORT}
               resources:
@@ -278,7 +278,7 @@ objects:
               averageUtilization: 80
       behavior:
         scaleDown:
-          stabilizationWindowSeconds: 300  
+          stabilizationWindowSeconds: 300
 
 parameters:
   - name: NAME
@@ -309,7 +309,7 @@ parameters:
     displayName: Suffix
     description: A name suffix used for all objects
     required: false
-    value: 
+    value:
   - name: APP_GROUP
     displayName: App Group
     description: The name assigned to all of the deployments in this project.

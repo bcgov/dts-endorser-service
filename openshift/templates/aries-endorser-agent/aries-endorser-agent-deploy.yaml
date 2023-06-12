@@ -152,15 +152,15 @@ objects:
               command:
                 - bash
                 - -c
-                - $(echo aca-py start 
-                  --inbound-transport http '0.0.0.0' ${HTTP_INTERFACE_PORT} 
-                  --inbound-transport ws '0.0.0.0' ${WS_INTERFACE_PORT} 
-                  --outbound-transport ws 
-                  --outbound-transport http 
+                - $(echo aca-py start
+                  --inbound-transport http '0.0.0.0' ${HTTP_INTERFACE_PORT}
+                  --inbound-transport ws '0.0.0.0' ${WS_INTERFACE_PORT}
+                  --outbound-transport ws
+                  --outbound-transport http
                   --endpoint ${AGENT_URL} ${AGENT_WS_URL}
                   --wallet-storage-config "$(eval echo \"${WALLET_STORAGE_CONFIGURATION}\")"
                   --wallet-storage-creds "$(eval echo \"${WALLET_STORAGE_CREDENTIALS}\")"
-                  --admin 0.0.0.0 ${ADMIN_INTERFACE_PORT} 
+                  --admin 0.0.0.0 ${ADMIN_INTERFACE_PORT}
                   );
               env:
                 - name: ACAPY_ENDORSER_ROLE
@@ -257,8 +257,8 @@ objects:
                 - name: ENDORSER_SERVICE_PORT
                   value: ${ENDORSER_SERVICE_PORT}
                 - name: ENDORSER_SERVICE_HOST
-                  value: ${ENDORSER_SERVICE_HOST}
-              image:  
+                  value: ${ENDORSER_SERVICE_HOST}${SUFFIX}
+              image:
               ports:
                 - containerPort: ${{AGENT_ADMIN_PORT}}
                   protocol: TCP
@@ -464,7 +464,7 @@ parameters:
     displayName: Site URL
     description: The URL for the site
     required: true
-    value: wss://aries-endorser-agent-dev.apps.silver.devops.gov.bc.ca 
+    value: wss://aries-endorser-agent-dev.apps.silver.devops.gov.bc.ca
   - name: ACAPY_IMAGE_URL
     displayName: Agent Image URL
     description: The URL of the image for the agent

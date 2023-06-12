@@ -150,7 +150,7 @@ objects:
                       key: database-password
 
                 - name: ACAPY_ADMIN_HOST
-                  value: ${ACAPY_ADMIN_HOST}
+                  value: ${ACAPY_ADMIN_HOST}${SUFFIX}
                 - name: ACAPY_ADMIN_URL
                   value: ${ACAPY_ADMIN_URL}
                 - name: ACAPY_API_ADMIN_KEY
@@ -393,7 +393,7 @@ parameters:
     value: "false"
   - name: ENDORSER_AUTO_ENDORSE_TXN_TYPES
     displayName: Auto Endorse Txn Types
-    description: 
+    description:
       CSV string defining the Txn types to auto endorse.  For example, "1,100,101,102,113,114", "" for all.
       Works in conjunction with ENDORSER_AUTO_ENDORSE_REQUESTS.
     required: false
