@@ -354,7 +354,10 @@ EOL
                       -H "Authorization: ${endorserTokenType^} ${endorserToken}" \
                       "${endorserUrl}/endorser/v1/admin/config")
 
-  endoserPublicDid=$(${JQ_EXE} -nr "${endorserConfig} | .endorser_config.public_did.did")
+  # Write results to a file, as they can be too long for direct input into jq.
+  echo "${endorserConfig}" > endorserConfig.json
+  endoserPublicDid=$(${JQ_EXE} -r ".endorser_config.public_did.did" endorserConfig.json)
+  rm endorserConfig.json
 
   echo -e "Retrieving author configuration from ${authorUrl} ..."
   authorConfig=$(${CURL_EXE} \
@@ -365,8 +368,8 @@ EOL
                     "${authorUrl}/wallet/did/public")
   authorPublicDid=$(${JQ_EXE} -nr "${authorConfig} | .result.did")
 
-  # Author Agent: Use the POST /didexchange/create-request to request a connection with the endorser, using the endorser's public DID. 
-  # Set the alias to Endorser - this MUST match the --endorser-alias 'Endorser' setting (in the ngrok-wait.sh script). 
+  # Author Agent: Use the POST /didexchange/create-request to request a connection with the endorser, using the endorser's public DID.
+  # Set the alias to Endorser - this MUST match the --endorser-alias 'Endorser' setting (in the ngrok-wait.sh script).
   # Use the GET /connections endpoint to verify the connection is in request state.
   # --------------------------------------------------------------------------------------------------------------------------------------------------------------------
   echo -e "Searching for existing author connections ..."
@@ -386,7 +389,7 @@ EOL
                       -H "accept: application/json" \
                       -H "X-Api-Key: ${authorApiKey}" \
                       "${authorUrl}/didexchange/create-request?their_public_did=${endoserPublicDid}&alias=${endorserAlias}&use_public_did=true")
-    
+
     # Give the connection request some time to be registered with the endorser.
     sleep 5
   elif (( ${authorConnectionResults} == 1 )); then
@@ -408,8 +411,8 @@ EOL
   authorConnectionId=$(${JQ_EXE} -nr "${authorConnection} | .connection_id")
   authorConnectionState=$(${JQ_EXE} -nr "${authorConnection} | .state")
 
-  # Endorser Service: Use the GET /v1/connections endpoint to see the connection request (state request). 
-  # Using the connection_id, call the POST /connections/{connection_id}/accept endpoint to accept the request. 
+  # Endorser Service: Use the GET /v1/connections endpoint to see the connection request (state request).
+  # Using the connection_id, call the POST /connections/{connection_id}/accept endpoint to accept the request.
   # Verify that the connection state goes to active.
   # --------------------------------------------------------------------------------------------------------------------------------------------------------------------
   echo -e "Locating the matching connection on the endorser side ..."
@@ -485,9 +488,9 @@ EOL
     echo
   fi
 
-  # Author Agent: Verify the connection state goes to active. 
-  # Use the POST /transactions/{conn_id}/set-endorser-role to set the connection role to TRANSACTION_AUTHOR, 
-  # and then use POST /transactions/{conn_id}/set-endorser-info to set the endorser's alias to Endorser and 
+  # Author Agent: Verify the connection state goes to active.
+  # Use the POST /transactions/{conn_id}/set-endorser-role to set the connection role to TRANSACTION_AUTHOR,
+  # and then use POST /transactions/{conn_id}/set-endorser-info to set the endorser's alias to Endorser and
   # the public DID to the endorser's public DID. Verify the settings using the GET /connections/{conn_id}/meta-data endpoint.
   # --------------------------------------------------------------------------------------------------------------------------------------------------------------------
   if [[ "${authorConnectionState}" != "${ACTIVE_STATE}" ]]; then
@@ -506,7 +509,7 @@ EOL
     echo
   else
     echo -e "The author connection is already ${ACTIVE_STATE}."
-  fi 
+  fi
 
   echo -e "Setting up the roles and endorser information on the author's connection ..."
   authorSetEndorserRoleResponse=$(${CURL_EXE} \
@@ -616,7 +619,7 @@ case "${_cmd}" in
   registerauthor)
     isCurlInstalled
     isJQInstalled
-    
+
     registerAuthor ${@}
     ;;
 

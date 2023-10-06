@@ -189,6 +189,8 @@ objects:
                   value: ${ACAPY_MONITOR_PING}
                 - name: ACAPY_PUBLIC_INVITES
                   value: ${ACAPY_PUBLIC_INVITES}
+                - name: ACAPY_REQUESTS_THROUGH_PUBLIC_DID
+                  value: ${ACAPY_REQUESTS_THROUGH_PUBLIC_DID}
                 - name: ACAPY_NOTIFY_REVOCATION
                   value: ${ACAPY_NOTIFY_REVOCATION}
                 - name: ACAPY_MONITOR_REVOCATION_NOTIFICATION
@@ -427,6 +429,11 @@ parameters:
   - name: ACAPY_PUBLIC_INVITES
     displayName: Public Invites
     description: Send invitations out, and receive connection requests, using the public DID for the agent.
+    required: true
+    value: 'true'
+  - name: ACAPY_REQUESTS_THROUGH_PUBLIC_DID
+    displayName: Accept Requests Through Public DID
+    description: Allow agent to receive unsolicited connection requests, using the public DID for the agent.
     required: true
     value: 'true'
   - name: ACAPY_NOTIFY_REVOCATION
