@@ -6,13 +6,13 @@
 NAME=aries-endorser-wallet
 APP_NAME=aries-endorser-service
 APP_GROUP=aries-endorser-service
-NAMESPACE_NAME=bc0192
-SUFFIX=-sandbox
+NAMESPACE_NAME=4a9599
+SUFFIX=
 ROLE=wallet
 AGENT_ROLE=agent
 BACKUP=true
 BACKUP_ROLE=backup
-IMAGE_NAMESPACE=bc0192-tools
+IMAGE_NAMESPACE=4a9599-tools
 SOURCE_IMAGE_NAME=aries-endorser-db
 TAG_NAME=dev
 POSTGRESQL_DATABASE_NAME=default_wallet
