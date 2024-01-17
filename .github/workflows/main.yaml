@@ -125,6 +125,7 @@ jobs:
           namespace: ${{ vars.NAMESPACE }}
           deployment_configuration: ${{ matrix.service }}
           openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
+          matrix_service: ${{ matrix.service }}
 
           # docker pull ghcr.io/bcgov/dts-endorser-service@sha256:57f946ab1053726ac6fcb71c85a98d355e926904ebe26db4798353668b3f6c68
 
