@@ -69,7 +69,7 @@ runs:
       run: |
         docker pull ${{ inputs.github_image_name }}@${{ inputs.image_digest }}
         docker tag ${{ inputs.github_image_name }}@${{ inputs.image_digest }} ${{ inputs.github_image_name }}:${{ inputs.environment }}
-        docker push ${{ inputs.github_image_name }}${{ matrix.service }}:${{ inputs.environment }}
+        docker push ${{ inputs.github_image_name }} ${{ matrix.service }}:${{ inputs.environment }}
 
     - name: Tag the image in the OpenShift container registry as ${{ inputs.environment }}
       shell: bash
