@@ -1,0 +1,191 @@
+name: Build and Deploy Image
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GITHUB_IMAGE_REPO: ghcr.io/bcgov/dts-endorser-service
+  OPENSHIFT_IMAGE_REPO: image-registry.apps.silver.devops.gov.bc.ca/4a9599-tools
+  APP_NAMES: aries-endorser-agent,aries-endorser-db,aries-endorser-backup,aries-endorser-proxy,aries-endorser-api 
+
+jobs:
+  build:
+    if: (github.repository == 'bcgov/dts-endorser-service') || (github.event_name == 'workflow_dispatch')
+    name: Build Image
+    permissions:
+      packages: write
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - service: aries-endorser-agent
+            GIT_REPO_URL: https://github.com/bcgov/aries-endorser-service
+            DOCKER_FILE_PATH: Dockerfile.acapy
+            SOURCE_CONTEXT_DIR: docker/acapy
+          # - service: aries-endorser-db
+          #   GIT_REPO_URL: https://github.com/bcgov/aries-endorser-service
+          #   DOCKER_FILE_PATH: docker/wallet/config
+          #   SOURCE_CONTEXT_DIR: docker/wallet/config
+          - service: aries-endorser-backup
+            GIT_REPO_URL: https://github.com/BCDevOps/backup-container
+            DOCKER_FILE_PATH: Dockerfile
+            SOURCE_CONTEXT_DIR: /docker
+          # - service: aries-endorser-proxy
+          #   GIT_REPO_URL: https://github.com/BCDevOps/backup-container.git
+          #   DOCKER_FILE_PATH: Dockerfile
+          #   SOURCE_CONTEXT_DIR: /docker
+          - service: aries-endorser-api
+            GIT_REPO_URL: https://github.com/bcgov/aries-endorser-service
+            DOCKER_FILE_PATH: Dockerfile.endorser
+            SOURCE_CONTEXT_DIR: endorser
+    outputs:
+      image_digest: ${{steps.docker_build.outputs.digest}}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with: 
+        repository: ${{ matrix.GIT_REPO_URL }}
+
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Log in to the GHCR
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Prepare docker tags for image
+      id: meta
+      uses: docker/metadata-action@v4
+      with:
+        images: ghcr.io/bcgov/dts-endorser-service/${{ matrix.service }}
+        flavor: |
+          latest=true
+        tags: |
+          type=schedule
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=semver,pattern={{major}}
+          type=sha,value=latest
+
+    - name: Build and push Docker image
+      id: docker_build
+      uses: docker/build-push-action@v3
+      with:
+        context: ${{ matrix.service }}/${{ matrix.SOURCE_CONTEXT_DIR }}
+        file: ${{ matrix.DOCKER_FILE_PATH }}
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Display image results
+      run: |
+        echo 'imageid=${{ steps.docker_build.outputs.imageid }}'
+        echo 'digest=${{ steps.docker_build.outputs.digest }}'
+
+  deploy2dev:
+    needs: build
+    env:
+      ENVIRONMENT: dev
+    permissions:
+      packages: write
+    runs-on: ubuntu-latest
+    environment: dev
+  
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+  
+      - name: Deploy to ${{ env.ENVIRONMENT }}
+        uses: ./.github/workflows/actions/deploy
+        with:
+          environment: ${{ env.ENVIRONMENT }}
+          ghcr_token: ${{ secrets.GITHUB_TOKEN }}
+          github_image_name: ${{ env.GITHUB_IMAGE_REPO }}/${{ matrix.service }}
+          image_digest: ${{ needs.build.outputs.image_digest }}
+          openshift_image_name: ${{ env.OPENSHIFT_IMAGE_REPO }}/${{ matrix.service }}
+          openshift_server_url: ${{ vars.OPENSHIFT_SERVER_URL }}
+          namespace: ${{ vars.NAMESPACE }}
+          deployment_configuration: ${{ matrix.service }}
+          openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
+
+          # docker pull ghcr.io/bcgov/dts-endorser-service@sha256:57f946ab1053726ac6fcb71c85a98d355e926904ebe26db4798353668b3f6c68
+
+          # docker pull ghcr.io/bcgov/dts-endorser-service/aries-endorser-api:sha-e237467
+          # docker pull ${{ inputs.github_image_name }}@${{ inputs.image_digest }}
+          # github_image_name: ${{ env.GITHUB_IMAGE_REPO }}${{ matrix.service }}
+          # GITHUB_IMAGE_REPO: ghcr.io/bcgov/dts-endorser-service
+          # docker pull ghcr.io/bcgov/dts-endorser-service
+          # github_image_name: ghcr.io/bcgov/dts-endorser-service
+          # docker push ghcr.io/bcgov/dts-endorser-service/aries-endorser-api
+          # rocketchat_webhook: ${{ secrets.ROCKETCHAT_WEBHOOK }}
+
+  # deploy2test:
+  #   needs: [build, deploy2dev]
+  #   env:
+  #     ENVIRONMENT: test
+  #   permissions:
+  #     packages: write
+  #   runs-on: ubuntu-latest
+  #   environment: test
+
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
+
+  #     - name: deploy to ${{ env.ENVIRONMENT }}
+  #       uses: ./.github/workflows/actions/deploy
+  #       with:
+  #         environment: ${{ env.ENVIRONMENT }}
+  #         ghcr_token: ${{ secrets.GITHUB_TOKEN }}
+  #         github_image_name: ${{ env.GITHUB_IMAGE_REPO }}${{ env.APP_NAME }}
+  #         image_digest: ${{ needs.build.outputs.image_digest }}
+  #         openshift_image_name: ${{ env.OPENSHIFT_IMAGE_REPO }}${{ env.APP_NAME }}
+  #         openshift_server_url: ${{ vars.OPENSHIFT_SERVER_URL }}
+  #         namespace: ${{ vars.NAMESPACE }}
+  #         deployment_configuration: ${{ env.APP_NAME }}
+  #         openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
+  #         rocketchat_webhook: ${{ secrets.ROCKETCHAT_WEBHOOK }}
+
+  # deploy2prod:
+  #   needs: [build, deploy2dev, deploy2test]
+  #   env:
+  #     ENVIRONMENT: prod
+  #   permissions:
+  #     packages: write
+  #   runs-on: ubuntu-latest
+  #   environment: prod
+
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
+
+  #     - name: deploy to prod
+  #       uses: ./.github/workflows/actions/deploy
+  #       with:
+  #         environment: ${{ env.ENVIRONMENT }}
+  #         ghcr_token: ${{ secrets.GITHUB_TOKEN }}
+  #         github_image_name: ${{ env.GITHUB_IMAGE_REPO }}${{ env.APP_NAME }}
+  #         image_digest: ${{ needs.build.outputs.image_digest }}
+  #         openshift_image_name: ${{ env.OPENSHIFT_IMAGE_REPO }}${{ env.APP_NAME }}
+  #         openshift_server_url: ${{ vars.OPENSHIFT_SERVER_URL }}
+  #         namespace: ${{ vars.NAMESPACE }}
+  #         deployment_configuration: ${{ env.APP_NAME }}
+  #         openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
+  #         rocketchat_webhook: ${{ secrets.ROCKETCHAT_WEBHOOK }}
+
+  # aries-endorser-db, aries-endorser-backup, aries-endorser-proxy, aries-endorser-api 
