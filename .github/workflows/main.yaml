@@ -45,6 +45,10 @@ jobs:
             DOCKER_FILE_PATH: Dockerfile.endorser
             SOURCE_CONTEXT_DIR: endorser
     outputs:
+      aries-endorser-agent_digest: ${{steps.digest.outputs.aries-endorser-agent_digest}} 
+      aries-endorser-backup_digest: ${{steps.digest.outputs.aries-endorser-backup_digest}} 
+      aries-endorser-api_digest: ${{steps.digest.outputs.aries-endorser-api_digest}}
+      aries-endorser-db_digest: ${{steps.digests.outputs.aries-endorser-db_digest}}  
       image_digest: ${{steps.docker_build.outputs.digest}}
     steps:
     - name: Checkout
@@ -141,18 +145,20 @@ jobs:
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
 
     - name: Print image url
-      id: ${{ matrix.service }}
+      id: digests
       run:  |
         echo "registry_path=${{ steps.push.outputs.registry-paths }}"
         echo "digest=${{ steps.push.outputs.digest }}"
+        echo "${matrix.service}_digest=$digest\n" >> $GITHUB_OUTPUT
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
         
     - name: Display image results
+      id: digest
       run: |
         echo 'imageid=${{ steps.docker_build.outputs.imageid }}'
         echo 'digest=${{ steps.docker_build.outputs.digest }}'
+        echo "${matrix.service}_digest=$digest\n" >> $GITHUB_OUTPUT
       if: contains(fromJSON('["aries-endorser-agent","aries-endorser-backup","aries-endorser-api","aries-endorser-proxy"]'), matrix.service)
-
 
   deploy2dev:
     needs: build
@@ -181,7 +187,7 @@ jobs:
           environment: ${{ env.ENVIRONMENT }}
           ghcr_token: ${{ secrets.GITHUB_TOKEN }}
           github_image_name: ${{ env.GITHUB_IMAGE_REPO }}/${{ matrix.service }}
-          image_digest: ${{ needs.build.outputs.image_digest }}
+          image_digest: ${{ needs.build.outputs[format('{0}_digest', matrix.service)] }}
           openshift_image_name: ${{ env.OPENSHIFT_IMAGE_REPO }}/${{ matrix.service }}
           openshift_server_url: ${{ vars.OPENSHIFT_SERVER_URL }}
           namespace: ${{ vars.NAMESPACE }}
