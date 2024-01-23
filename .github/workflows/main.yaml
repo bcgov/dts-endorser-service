@@ -70,7 +70,7 @@ jobs:
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        password: ${{ secrets.GITHUB_TOKEN }} 
 
     - name: Prepare docker tags for image
       id: meta
@@ -187,11 +187,11 @@ jobs:
           environment: ${{ env.ENVIRONMENT }}
           ghcr_token: ${{ secrets.GITHUB_TOKEN }}
           github_image_name: ${{ env.GITHUB_IMAGE_REPO }}/${{ matrix.service }}
-          image_digest: ${{ needs.build.outputs[format('{0}_digest', matrix.service)] }}
+          image_digest:   ${{ format ( 'needs.build.outputs.{0}_digest', matrix.service) }}
           openshift_image_name: ${{ env.OPENSHIFT_IMAGE_REPO }}/${{ matrix.service }}
           openshift_server_url: ${{ vars.OPENSHIFT_SERVER_URL }}
           namespace: ${{ vars.NAMESPACE }}
-          deployment_configuration: ${{ matrix.service }}
+          deploymentContext _configuration: ${{ matrix.service }}
           openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
 
           # docker pull ghcr.io/bcgov/dts-endorser-service@sha256:57f946ab1053726ac6fcb71c85a98d355e926904ebe26db4798353668b3f6c68
