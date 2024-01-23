@@ -186,7 +186,7 @@ jobs:
         run: |
           echo '${need_small}'
         env:
-          need_samll: needs
+          need_samll: ${{ needs }}
       - name: Checkout
         uses: actions/checkout@v3
   
