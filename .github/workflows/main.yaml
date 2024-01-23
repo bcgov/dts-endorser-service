@@ -163,7 +163,7 @@ jobs:
       if: contains(fromJSON('["aries-endorser-agent","aries-endorser-backup","aries-endorser-api","aries-endorser-proxy"]'), matrix.service)
       env:
         service: ${{ matrix.service }}
-        
+
   deploy2dev:
     needs: build
     env:
@@ -182,6 +182,11 @@ jobs:
           - service: aries-endorser-api
   
     steps:
+      - name: id
+        run: |
+          echo '${need_small}'
+        env:
+          need_samll: needs
       - name: Checkout
         uses: actions/checkout@v3
   
