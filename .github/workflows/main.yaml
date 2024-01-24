@@ -181,7 +181,6 @@ jobs:
           - service: aries-endorser-agent
           - service: aries-endorser-db
           - service: aries-endorser-backup
-          # - service: aries-endorser-proxy
           - service: aries-endorser-api
   
     steps:
@@ -189,7 +188,8 @@ jobs:
         run: |
           echo '${need_small}'
         env:
-          need_samll: ${{ needs }}
+          need_small: ${{ needs }}
+      
       - name: Checkout
         uses: actions/checkout@v4
   
@@ -199,9 +199,9 @@ jobs:
           environment: ${{ env.ENVIRONMENT }}
           ghcr_token: ${{ secrets.GITHUB_TOKEN }}
           github_image_name: ${{ env.GITHUB_IMAGE_REPO }}/${{ matrix.service }}
-          image_digest:   ${{ format ( 'needs.build.outputs.{0}_digest', matrix.service) }}
+          image_digest: ${{ needs.build.outputs[format('{0}_digest', matrix.service)] }}
           openshift_image_name: ${{ env.OPENSHIFT_IMAGE_REPO }}/${{ matrix.service }}
           openshift_server_url: ${{ vars.OPENSHIFT_SERVER_URL }}
           namespace: ${{ vars.NAMESPACE }}
-          deploymentContext _configuration: ${{ matrix.service }}
+          deployment_configuration: ${{ matrix.service }}
           openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
