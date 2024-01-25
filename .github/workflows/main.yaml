@@ -149,7 +149,7 @@ jobs:
       run:  |
         echo "registry_path=${{ steps.push.outputs.registry-paths }}"
         echo "digest=${{ steps.push.outputs.digest }}"
-        echo "${matrix.service}_digest=$digest\n" >> $GITHUB_OUTPUT
+        echo "${matrix.service}_digest=$digest" >> $GITHUB_OUTPUT
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
         
     - name: Display image results
@@ -157,7 +157,7 @@ jobs:
       run: |
         echo 'imageid=${{ steps.docker_build.outputs.imageid }}'
         echo 'digest=${{ steps.docker_build.outputs.digest }}'
-        echo "${matrix.service}_digest=$digest\n" >> $GITHUB_OUTPUT
+        echo "${matrix.service}_digest=$digest" >> $GITHUB_OUTPUT
       if: contains(fromJSON('["aries-endorser-agent","aries-endorser-backup","aries-endorser-api","aries-endorser-proxy"]'), matrix.service)
 
   deploy2dev:
