@@ -44,6 +44,7 @@ jobs:
             GIT_REPO_URL: bcgov/aries-endorser-service
             DOCKER_FILE_PATH: Dockerfile.endorser
             SOURCE_CONTEXT_DIR: endorser
+
     outputs:
       aries-endorser-agent_digest: ${{ steps.digest.outputs.aries-endorser-agent_digest }} 
       aries-endorser-backup_digest: ${{ steps.digest.outputs.aries-endorser-backup_digest }} 
@@ -163,6 +164,7 @@ jobs:
       if: contains(fromJSON('["aries-endorser-agent","aries-endorser-backup","aries-endorser-api","aries-endorser-proxy"]'), matrix.service)
       env:
         service: ${{ matrix.service}} 
+
   deploy2dev:
     needs: build
     env:
@@ -182,7 +184,7 @@ jobs:
           - service: aries-endorser-agent
           # - service: aries-endorser-db
           # - service: aries-endorser-backup
-          # # - service: aries-endorser-proxy
+          # - service: aries-endorser-proxy
           # - service: aries-endorser-api
   
     steps:
@@ -204,7 +206,7 @@ jobs:
           openshift_image_name: ${{ env.OPENSHIFT_IMAGE_REPO }}/${{ matrix.service }}
           openshift_server_url: ${{ vars.OPENSHIFT_SERVER_URL }}
           namespace: ${{ vars.NAMESPACE }}
-          deploymentContext _configuration: ${{ matrix.service }}
+          deployment_configuration: ${{ matrix.service }}
           openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
 
           # docker pull ghcr.io/bcgov/dts-endorser-service@sha256:57f946ab1053726ac6fcb71c85a98d355e926904ebe26db4798353668b3f6c68
