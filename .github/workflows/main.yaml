@@ -45,11 +45,11 @@ jobs:
             DOCKER_FILE_PATH: Dockerfile.endorser
             SOURCE_CONTEXT_DIR: endorser
     outputs:
-      aries-endorser-agent_digest: ${{steps.digest.outputs.aries-endorser-agent_digest}} 
-      aries-endorser-backup_digest: ${{steps.digest.outputs.aries-endorser-backup_digest}} 
-      aries-endorser-api_digest: ${{steps.digest.outputs.aries-endorser-api_digest}}
-      aries-endorser-db_digest: ${{steps.digests.outputs.aries-endorser-db_digest}}  
-      image_digest: ${{steps.docker_build.outputs.digest}}
+      aries-endorser-agent_digest: ${{ steps.digest.outputs.aries-endorser-agent_digest }} 
+      aries-endorser-backup_digest: ${{ steps.digest.outputs.aries-endorser-backup_digest }} 
+      aries-endorser-api_digest: ${{ steps.digest.outputs.aries-endorser-api_digest }}
+      aries-endorser-db_digest: ${{ steps.digests.outputs.aries-endorser-db_digest }}  
+      image_digest: ${{ steps.docker_build.outputs.digest }}
     steps:
     - name: Checkout
       uses: actions/checkout@v4
