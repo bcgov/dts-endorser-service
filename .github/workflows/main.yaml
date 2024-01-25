@@ -46,10 +46,10 @@ jobs:
             SOURCE_CONTEXT_DIR: endorser
 
     outputs:
-      aries-endorser-agent_digest: ${{ steps.aries-endorser-agent-digest.outputs.digest }}
-      aries-endorser-backup_digest: ${{ steps.aries-endorser-backup-digest.outputs.digest }}
-      aries-endorser-api_digest: ${{ steps.aries-endorser-api-digest.outputs.digest }}
-      aries-endorser-db_digest: ${{ steps.aries-endorser-db-digest.outputs.digest }}
+      aries-endorser-agent_digest: ${{ steps.docker_build.outputs.aries-endorser-agent_digest }}
+      aries-endorser-backup_digest: ${{ steps.docker_build.outputs.aries-endorser-backup_digest }}
+      aries-endorser-api_digest: ${{ steps.docker_build.outputs.aries-endorser-api_digest }}
+      aries-endorser-db_digest: ${{ steps.docker_build.outputs.aries-endorser-db_digest }}
       image_digest: ${{ steps.docker_build.outputs.digest }}
 
     steps:
