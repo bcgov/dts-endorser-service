@@ -190,7 +190,7 @@ jobs:
         run: |
           echo "${digest}"
         env:
-          digest: ${{ env.aries-endorser-api_digest}}
+          digest: ${{ env.aries-endorser-api_digest }}
       - name: Checkout
         uses: actions/checkout@v3
   
