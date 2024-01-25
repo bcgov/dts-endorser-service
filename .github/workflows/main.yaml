@@ -206,7 +206,7 @@ jobs:
           ghcr_token: ${{ secrets.GITHUB_TOKEN }}
           github_image_name: ${{ env.GITHUB_IMAGE_REPO }}${{ matrix.service }}
           image_digest:  ${{ needs.build.outputs.aries-endorser-agent_digest }}
-          openshift_image_name: ${{ env.OPENSHIFT_IMAGE_REPO }}
+          openshift_image_name: ${{ env.OPENSHIFT_IMAGE_REPO }}${{ matrix.service }}
           openshift_server_url: ${{ vars.OPENSHIFT_SERVER_URL }}
           namespace: ${{ vars.NAMESPACE }}
           deployment_configuration: ${{ matrix.service }}
