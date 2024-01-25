@@ -194,10 +194,8 @@ jobs:
       - name: id
         run: |
           echo "${digest}"
-          echo "${needs}"
         env:
           digest: ${{ env.aries-endorser-api_digest }}
-          new: ${{ fromJson(needs.build) }}
       - name: Checkout
         uses: actions/checkout@v3
   
