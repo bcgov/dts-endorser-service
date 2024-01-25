@@ -150,6 +150,7 @@ jobs:
       run:  |
         echo "registry_path=${{ steps.push.outputs.registry-paths }}"
         echo "digest=${{ steps.push.outputs.digest }}"
+        digest=${{ steps.push.outputs.digest }}
         echo "${service}_digest=${digest}" >> $GITHUB_OUTPUT
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
       env:
@@ -160,6 +161,7 @@ jobs:
       run: |
         echo 'imageid=${{ steps.docker_build.outputs.imageid }}'
         echo 'digest=${{ steps.docker_build.outputs.digest }}'
+        digest=${{ steps.docker_build.outputs.digest }}
         echo "${service}_digest=${digest}" >> $GITHUB_OUTPUT
         cat $GITHUB_OUTPUT
       if: contains(fromJSON('["aries-endorser-agent","aries-endorser-backup","aries-endorser-api","aries-endorser-proxy"]'), matrix.service)
@@ -195,7 +197,7 @@ jobs:
           echo "${needs}"
         env:
           digest: ${{ env.aries-endorser-api_digest }}
-          new: ${{ fromJson(needs.build )}}
+          new: ${{ fromJson(needs.build) }}
       - name: Checkout
         uses: actions/checkout@v3
   
