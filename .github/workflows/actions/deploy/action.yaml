@@ -34,7 +34,7 @@ inputs:
     description: The token used to authenticate with the OpenShift server.
     required: true
 
-  rocket.chat notification parameters
+  # rocket.chat notification parameters
   rocketchat_webhook:
     description: The URL to use for posting notifications to rocket.chat.
     required: true
