@@ -26,29 +26,30 @@ jobs:
       matrix:
         include:
           - service: aries-endorser-agent
-            GIT_REPO_URL: bcgov/aries-endorser-service
-            SOURCE_CONTEXT_DIR: docker/acapy
-            DOCKER_FILE_PATH: Dockerfile.acapy
+            GIT_REPO_URL: bcgov/aries-endorser-service 
+            DOCKER_FILE_PATH: Dockerfile.acapy # The docker path, file, is the relative path to the docker file from the root of the repo.
+            SOURCE_CONTEXT_DIR: docker/acapy   # The context dir, context, sets the context for the build. i.e. where the build will source files from 
           - service: aries-endorser-db
             GIT_REPO_URL:  bcgov/aries-endorser-service
             PATH:  docker/wallet/config
             BUILDER_IMAGE: 'quay.io/fedora/postgresql-13:13'
           - service: aries-endorser-backup
             GIT_REPO_URL: BCDevOps/backup-container
-            DOCKER_FILE_PATH: Dockerfile
-            SOURCE_CONTEXT_DIR: docker
-          # - service: aries-endorser-proxy
-          #   DOCKER_FILE_PATH: Dockerfile
-          #   SOURCE_CONTEXT_DIR: proxy
+            DOCKER_FILE_PATH: Dockerfile  # The docker path, file, is the relative path to the docker file from the root of the repo.
+            SOURCE_CONTEXT_DIR: docker    # The context dir, context, sets the context for the build. i.e. where the build will source files from
+          - service: aries-endorser-proxy
+            DOCKER_FILE_PATH: Dockerfile  # The docker path, file, is the relative path to the docker file from the root of the repo.
+            SOURCE_CONTEXT_DIR: proxy     # The context dir, context, sets the context for the build. i.e. where the build will source files from
           - service: aries-endorser-api
             GIT_REPO_URL: bcgov/aries-endorser-service
-            DOCKER_FILE_PATH: Dockerfile.endorser
-            SOURCE_CONTEXT_DIR: endorser
+            DOCKER_FILE_PATH: Dockerfile.endorser # The docker path, file, is the relative path to the docker file from the root of the repo.
+            SOURCE_CONTEXT_DIR: endorser          # The context dir, context, sets the context for the build. i.e. where the build will source files from
 
     outputs:
       aries-endorser-agent_digest: ${{ steps.digest.outputs.aries-endorser-agent_digest }} 
       aries-endorser-backup_digest: ${{ steps.digest.outputs.aries-endorser-backup_digest }} 
       aries-endorser-api_digest: ${{ steps.digest.outputs.aries-endorser-api_digest }}
+      aries-endorser-proxy_digest: ${{ steps.digest.outputs.aries-endorser-proxy_digest }}
       aries-endorser-db_digest: ${{ steps.digests.outputs.aries-endorser-db_digest }}  
       image_digest: ${{ steps.docker_build.outputs.digest }}
     steps:
@@ -57,17 +58,30 @@ jobs:
       with: 
         repository: ${{ matrix.GIT_REPO_URL }}
 
-    - name: List Directories
-      run: |
-        ls -l
-        echo $service
       env: 
         service: ${{ matrix.service }}
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      uses: docker/setup-buildx-action@v3
+
+    - name: Pull  base image for proxy and Create Docker file
+      run: |
+          docker login -u $REGISTRY_USERNAME  -p $REGISTRY_PASSWORD $SOURCE_IMAGE_REGISTRY
+          BASE_IMAGE=${SOURCE_IMAGE_REGISTRY}${SOURCE_IMAGE_NAME}:${SOURCE_IMAGE_TAG}
+          docker pull "${BASE_IMAGE}"
+          mkdir ${context} && cd ${context} 
+          echo "FROM ${BASE_IMAGE}" > Dockerfile
+          echo "RUN chown 1001:root /usr/bin/caddy" >> Dockerfile
+      if: contains(fromJSON('["aries-endorser-proxy"]'), matrix.service)
+      env:
+        context: ${{ matrix.SOURCE_CONTEXT_DIR }}
+        SOURCE_IMAGE_REGISTRY: "artifacts.developer.gov.bc.ca/docker-remote/"
+        SOURCE_IMAGE_NAME:  caddy
+        SOURCE_IMAGE_TAG: latest
+        REGISTRY_USERNAME: ${{ secrets.USERNAME }}
+        REGISTRY_PASSWORD: ${{ secrets.PASSWORD }}
 
     - name: Log in to the GHCR
-      uses: docker/login-action@v2
+      uses: docker/login-action@v3
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
@@ -75,7 +89,7 @@ jobs:
 
     - name: Prepare docker tags for image
       id: meta
-      uses: docker/metadata-action@v4
+      uses: docker/metadata-action@v5
       with:
         images: ghcr.io/bcgov/dts-endorser-service/${{ matrix.service }}
         flavor: |
@@ -91,20 +105,10 @@ jobs:
       if: contains(fromJSON('["aries-endorser-agent","aries-endorser-backup","aries-endorser-api","aries-endorser-proxy"]'), matrix.service)
       env: 
         service: ${{ matrix.service }}
-     
-    - name: Create Docker file
-      run: |
-          mkdir ${context} && cd ${context} 
-          echo "FROM ${BASE_IMAGE}" > Dockerfile
-          echo "RUN chown 1001:root /usr/bin/caddy" >> Dockerfile
-      if: contains(fromJSON('["aries-endorser-proxy"]'), matrix.service)
-      env:
-        context: ${{ matrix.SOURCE_CONTEXT_DIR }}
-        BASE_IMAGE: "artifacts.developer.gov.bc.ca/docker-remote/caddy:latest"
-
+    
     - name: Build and push Docker image
       id: docker_build
-      uses: docker/build-push-action@v3
+      uses: docker/build-push-action@v5
       with:
         context: ${{ matrix.SOURCE_CONTEXT_DIR }}
         file:  ${{ matrix.SOURCE_CONTEXT_DIR }}/${{ matrix.DOCKER_FILE_PATH }}
@@ -175,7 +179,7 @@ jobs:
       aries-endorser-agent_digest : ${{ needs.build.outputs.aries-endorser-agent_digest }}
       aries-endorser-db_digest : ${{ needs.build.outputs.aries-endorser-db_digest }}
       aries-endorser-api_digest : ${{ needs.build.outputs.aries-endorser-api_digest }}
-      # aries-endorser-proxy_digest : ${{ needs.build.outputs.aries-endorser-proxy_digest }}
+      aries-endorser-proxy_digest : ${{ needs.build.outputs.aries-endorser-proxy_digest }}
       aries-endorser-backup_digest : ${{ needs.build.outputs.aries-endorser-backup_digest }}            
     permissions:
       packages: write
@@ -185,19 +189,15 @@ jobs:
       matrix:
         include:
           - service: aries-endorser-agent
-          # - service: aries-endorser-db
-          # - service: aries-endorser-backup
-          # - service: aries-endorser-proxy
-          # - service: aries-endorser-api
+          - service: aries-endorser-db
+          - service: aries-endorser-backup
+          - service: aries-endorser-proxy
+          - service: aries-endorser-api
   
     steps:
-      - name: id
-        run: |
-          echo "${digest}"
-        env:
-          digest: ${{ env.aries-endorser-api_digest }}
+
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
   
       - name: Deploy to ${{ env.ENVIRONMENT }}
         uses: ./.github/workflows/actions/deploy
@@ -205,7 +205,7 @@ jobs:
           environment: ${{ env.ENVIRONMENT }}
           ghcr_token: ${{ secrets.GITHUB_TOKEN }}
           github_image_name: ${{ env.GITHUB_IMAGE_REPO }}${{ matrix.service }}
-          image_digest:  ${{ needs.build.outputs.aries-endorser-agent_digest }}
+          image_digest: ${{ needs.build.outputs[format ('{0}_digest', matrix.service)] }}
           openshift_image_name: ${{ env.OPENSHIFT_IMAGE_REPO }}${{ matrix.service }}
           openshift_server_url: ${{ vars.OPENSHIFT_SERVER_URL }}
           namespace: ${{ vars.NAMESPACE }}
