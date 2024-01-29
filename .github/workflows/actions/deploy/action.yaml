@@ -14,13 +14,10 @@ inputs:
     description: The name of the image in the GHCR to be deployed.
     required: true
   image_digest:
-    description: The digest of the image to be deployed.  Identifies the unique image tag in the GHCR.
+    description: The digest of the image to be deployed. Identifies the unique image tag in the GHCR.
     required: true
   openshift_image_name:
     description: The name of the image to use when pushing to OpenShift.
-    required: true
-  service:
-    description: The name of images used
     required: true
 
   # OpenShift parameters
@@ -37,10 +34,10 @@ inputs:
     description: The token used to authenticate with the OpenShift server.
     required: true
 
-  # rocket.chat notification parameters
-  # rocketchat_webhook:
-  #   description: The URL to use for posting notifications to rocket.chat.
-  #   required: true
+  rocket.chat notification parameters
+  rocketchat_webhook:
+    description: The URL to use for posting notifications to rocket.chat.
+    required: true
 
 runs:
   using: composite
@@ -87,14 +84,14 @@ runs:
         echo starting rollout in ${{ inputs.namespace }}
         oc -n ${{ inputs.namespace }} rollout status dc/${{ inputs.deployment_configuration }} --watch
 
-    # - name: Rocket.Chat Notification
-    #   uses: RocketChat/Rocket.Chat.GitHub.Action.Notification@1.1.1
-    #   if: always()
-    #   with:
-    #     type:  ${{ job.status }}
-    #     job_name: '*Deployment to ${{ inputs.environment }}*'
-    #     mention: 'here'
-    #     mention_if: 'failure'
-    #     channel: '#test-gha'
-    #     url: ${{ inputs.rocketchat_webhook }}
-    #     commit: true
+    - name: Rocket.Chat Notification
+      uses: RocketChat/Rocket.Chat.GitHub.Action.Notification@1.1.1
+      if: always()
+      with:
+        type:  ${{ job.status }}
+        job_name: '*Deployment to ${{ inputs.environment }}*'
+        mention: 'here'
+        mention_if: 'failure'
+        channel: '#ditp-gha-notifications'
+        url: ${{ inputs.rocketchat_webhook }}
+        commit: true
