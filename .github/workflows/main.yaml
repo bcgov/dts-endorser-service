@@ -161,6 +161,7 @@ jobs:
         cat $GITHUB_OUTPUT
       if: contains(fromJSON('["aries-endorser-agent","aries-endorser-backup","aries-endorser-api","aries-endorser-proxy"]'), matrix.service)
 
+      
   # deploy2dev:
   #   needs: build
   #   env:
