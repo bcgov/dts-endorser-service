@@ -87,7 +87,7 @@ jobs:
 
     - name: Prepare docker tags for image
       id: meta
-      if: contains(fromJSON('["aries-endorser-db",aries-endorser-agent","aries-endorser-backup","aries-endorser-api","aries-endorser-proxy,"]'), matrix.service)
+      if: contains(fromJSON('["aries-endorser-db","aries-endorser-agent","aries-endorser-backup","aries-endorser-api","aries-endorser-proxy"]'), matrix.service)
       uses: docker/metadata-action@v5
       with:
         images: ghcr.io/bcgov/dts-endorser-service/${{ matrix.service }}
