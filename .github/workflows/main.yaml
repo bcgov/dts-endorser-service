@@ -2,6 +2,14 @@ name: Build and Deploy Image
 
 on:
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Define teh tag for the code'     
+        required: false
+      branch:
+        description: 'Define branch name'     
+        required: true
+        default: 'main'
   push:
     branches:
       - workflow
@@ -57,6 +65,16 @@ jobs:
       uses: actions/checkout@v4
       with: 
         repository: ${{ matrix.GIT_REPO_URL }}
+        ref:  ${{ github.event.tag }} 
+      if: ${{ github.event.tag != '' }}
+
+    - name: Checkout
+      uses: actions/checkout@v4
+      with: 
+        repository: ${{ matrix.GIT_REPO_URL }}
+        ref:  ${{ github.event.branch }} 
+      if: ${{ github.event.tag == '' }}
+
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -120,6 +138,11 @@ jobs:
       run: |
           docker pull ${{ matrix.BUILDER_IMAGE }}
 
+    - name: Extract Values
+      id: extract
+      if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
+      run: echo "tags=$(echo ${{  steps.meta.outputs.tags  }} |  | grep -oE ':([^[:space:]]+)' | sed 's/://g' | tr '\n' ' ')      
+
     - name: Build database image
       id: build_image
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
@@ -129,7 +152,7 @@ jobs:
         # Builder image for a java project
         builder_image: ${{ matrix.BUILDER_IMAGE }}
         image:  dts-endorser-service/${{ matrix.service }}
-        tags: ${{ steps.meta.outputs.tags }}
+        tags: ${{ steps.extract.outputs.tags }}
 
     - name: Push database image
       id: push
