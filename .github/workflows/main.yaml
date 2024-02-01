@@ -141,7 +141,7 @@ jobs:
     - name: Extract Values
       id: extract
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
-      run: echo "tags=$(echo ${{  steps.meta.outputs.tags  }} |  | grep -oE ':([^[:space:]]+)' | sed 's/://g' | tr '\n' ' ')      
+      run: echo "tags=$(echo ${{  steps.meta.outputs.tags  }} | grep -oE ':([^[:space:]]+)' | sed 's/://g' | tr '\n' ' ')      
 
     - name: Build database image
       id: build_image
