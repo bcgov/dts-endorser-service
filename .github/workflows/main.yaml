@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Define teh tag for the code'     
+        description: 'Define the tag for thecode'     
         required: false
       branch:
         description: 'Define branch name'     
-        required: true
+        required: false
         default: 'main'
   push:
     branches:
@@ -48,6 +48,9 @@ jobs:
           - service: aries-endorser-proxy
             DOCKER_FILE_PATH: Dockerfile  # The docker path, file, is the relative path to the docker file from the root of the repo.
             SOURCE_CONTEXT_DIR: proxy     # The context dir, context, sets the context for the build. i.e. where the build will source files from
+            SOURCE_IMAGE_REGISTRY: "artifacts.developer.gov.bc.ca/docker-remote/"
+            SOURCE_IMAGE_NAME: caddy
+            SOURCE_IMAGE_TAG: latest
           - service: aries-endorser-api
             GIT_REPO_URL: hyperledger/aries-endorser-service
             DOCKER_FILE_PATH: Dockerfile.endorser # The docker path, file, is the relative path to the docker file from the root of the repo.
@@ -90,9 +93,9 @@ jobs:
           echo "RUN chown 1001:root /usr/bin/caddy" >> Dockerfile
       env:
         context: ${{ matrix.SOURCE_CONTEXT_DIR }}
-        SOURCE_IMAGE_REGISTRY: "artifacts.developer.gov.bc.ca/docker-remote/"
-        SOURCE_IMAGE_NAME: caddy
-        SOURCE_IMAGE_TAG: latest
+        SOURCE_IMAGE_REGISTRY: ${{ matrix.SOURCE_IMAGE_REGISTRY }}
+        SOURCE_IMAGE_NAME: ${{ matrix.SOURCE_IMAGE_NAME }}
+        SOURCE_IMAGE_TAG: ${{ matrix.SOURCE_IMAGE_TAG }}
         REGISTRY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
         REGISTRY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
 
