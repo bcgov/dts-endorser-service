@@ -129,7 +129,7 @@ jobs:
       if: ${{ matrix.BASE_SOURCE_IMAGE_REGISTRY }} != "" && contains(fromJSON('["aries-endorser-agent","aries-endorser-backup","aries-endorser-api","aries-endorser-proxy"]'), matrix.service)
       run: |
         BASE_IMAGE=${BASE_SOURCE_IMAGE_REGISTRY}${BASE_SOURCE_IMAGE_NAME}:${BASE_SOURCE_IMAGE_TAG}
-        sed -i "/FROM .*/FROM ${BASE_IMAGE}/g"  ${file}
+        sed -i -e "/FROM .*/FROM ${BASE_IMAGE}/g"  ${file}
       env:
         context: ${{ matrix.SOURCE_CONTEXT_DIR }}
         BASE_SOURCE_IMAGE_REGISTRY: ${{ matrix.BASE_SOURCE_IMAGE_REGISTRY }}
