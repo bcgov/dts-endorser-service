@@ -57,7 +57,7 @@ jobs:
             SOURCE_CONTEXT_DIR: endorser # The context dir, context, sets the context for the build. i.e. where the build will source files from
             BASE_SOURCE_IMAGE_REGISTRY: artifacts.developer.gov.bc.ca/docker-remote/
             BASE_SOURCE_IMAGE_NAME: python
-            BASE_SOURCE_IMAGE_TAG: 3.10-slim-buster
+            BASE_SOURCE_IMAGE_TAG: 3.10-slim-buster-test
             REGISTRY_USERNAME_SECRET_NAME: ARTIFACTORY_USERNAME 
             REGISTRY_PASSWORD_SECRET_NAME: ARTIFACTORY_PASSWORD 
     outputs:
