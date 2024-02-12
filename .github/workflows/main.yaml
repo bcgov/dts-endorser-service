@@ -120,7 +120,7 @@ jobs:
     - name: Prepare docker tags for image
       id: meta
       if: contains(fromJSON('["aries-endorser-db","aries-endorser-agent","aries-endorser-backup","aries-endorser-api","aries-endorser-proxy"]'), matrix.service)
-      uses: docker/metadata-action@v5
+      uses: docker/metadata-action@v4
       with:
         images: ghcr.io/bcgov/dts-endorser-service/${{ matrix.service }}
         flavor: |
@@ -161,10 +161,18 @@ jobs:
         file: ${{ matrix.SOURCE_CONTEXT_DIR }}/${{ matrix.DOCKER_FILE_PATH }}
         push: true
         tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-
+      #  labels: ${{ steps.meta.outputs.labels }}
+        labels: |
+          org.opencontainers.image.created=2024-02-12T18:18:55.462Z
+          org.opencontainers.image.description=Digital Trust Services - Endorser Service
+          org.opencontainers.image.licenses=Apache-2.0
+          org.opencontainers.image.revision=c6c6ae3a469412da3cede5e8144535a04a6419d8
+          org.opencontainers.image.source=https://github.com/bcgov/dts-endorser-service
+          org.opencontainers.image.title=dts-endorser-service
+          org.opencontainers.image.url=https://github.com/bcgov/dts-endorser-service
+          org.opencontainers.image.version=workflow
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
     - name: Pull database image
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
       run: |
