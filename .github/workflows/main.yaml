@@ -88,17 +88,17 @@ jobs:
     - name: Pull base image for proxy and Create Docker file
       if: contains(fromJSON('["aries-endorser-proxy"]'), matrix.service)
       run: |
-          if [[ -n "${BASE_SOURCE_IMAGE_REGISTRY}" ]]; then
-          docker login -u $REGISTRY_USERNAME -p $REGISTRY_PASSWORD $BASE_SOURCE_IMAGE_REGISTRY
-          BASE_IMAGE="${BASE_SOURCE_IMAGE_REGISTRY}${BASE_SOURCE_IMAGE_NAME}:${BASE_SOURCE_IMAGE_TAG}"
-          else
-          docker login -u $REGISTRY_USERNAME -p $REGISTRY_PASSWORD $SOURCE_IMAGE_REGISTRY
-          BASE_IMAGE=${SOURCE_IMAGE_REGISTRY}${SOURCE_IMAGE_NAME}:${SOURCE_IMAGE_TAG}
-          fi
-          docker pull "${BASE_IMAGE}"
-          mkdir ${context} && cd ${context} 
-          echo "FROM ${BASE_IMAGE}" > Dockerfile
-          echo "RUN chown 1001:root /usr/bin/caddy" >> Dockerfile
+        if [[ -n "${BASE_SOURCE_IMAGE_REGISTRY}" ]]; then
+        docker login -u $REGISTRY_USERNAME -p $REGISTRY_PASSWORD $BASE_SOURCE_IMAGE_REGISTRY
+        BASE_IMAGE="${BASE_SOURCE_IMAGE_REGISTRY}${BASE_SOURCE_IMAGE_NAME}:${BASE_SOURCE_IMAGE_TAG}"
+        else
+        docker login -u $REGISTRY_USERNAME -p $REGISTRY_PASSWORD $SOURCE_IMAGE_REGISTRY
+        BASE_IMAGE=${SOURCE_IMAGE_REGISTRY}${SOURCE_IMAGE_NAME}:${SOURCE_IMAGE_TAG}
+        fi
+        docker pull "${BASE_IMAGE}"
+        mkdir ${context} && cd ${context} 
+        echo "FROM ${BASE_IMAGE}" > Dockerfile
+        echo "RUN chown 1001:root /usr/bin/caddy" >> Dockerfile
       env:
         context: ${{ matrix.SOURCE_CONTEXT_DIR }}
         SOURCE_IMAGE_REGISTRY: ${{ matrix.SOURCE_IMAGE_REGISTRY }}
@@ -173,6 +173,7 @@ jobs:
           org.opencontainers.image.version=workflow
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          
     - name: Pull database image
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
       run: |
@@ -198,11 +199,11 @@ jobs:
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
       uses: redhat-actions/push-to-registry@v2
       with:
-          tags: ${{ steps.build_image.outputs.tags }}
-          image:  ${{ steps.build_image.outputs.image }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-          registry: ghcr.io/bcgov
+        tags: ${{ steps.build_image.outputs.tags }}
+        image:  ${{ steps.build_image.outputs.image }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        registry: ghcr.io/bcgov
 
     - name: Display ${{ matrix.service }} image results
       id: digests
