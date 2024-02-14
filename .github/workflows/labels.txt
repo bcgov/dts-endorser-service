@@ -1,0 +1,18 @@
+  "labels": {
+    "org.opencontainers.image.source": "https://github.com/hyperledger/aries-cloudagent-python",
+    "org.opencontainers.image.title": "aries-cloudagent-python",
+    "summary": "aries-cloudagent image",
+    "acapy.version": "0.10.3",
+    "org.opencontainers.image.description": "Hyperledger Aries Cloud Agent Python (ACA-Py) is a foundation for building decentralized identity applications and services running in non-mobile environments.",
+    "io.k8s.display-name": "aries-cloudagent 0.10.3",
+    "org.opencontainers.image.url": "https://github.com/hyperledger/aries-cloudagent-python",
+    "org.opencontainers.image.licenses": "Apache-2.0",
+    "name": "aries-cloudagent",
+    "org.opencontainers.image.version": "py3.9-0.10.3",
+    "io.k8s.description": "aries-cloudagent provides a base image for running Hyperledger Aries agents in Docker.     This image layers the python implementation of aries-cloudagent 0.10.3. Based on Debian Buster.",
+    "org.opencontainers.image.created": "2023-09-29T16:15:13.175Z",
+    "org.opencontainers.image.revision": "736cdfb38b68900b779e6159f8a16d299127fdc8",
+    "maintainer": "",
+    "description": "aries-cloudagent provides a base image for running Hyperledger Aries agents in Docker.     This image layers the python implementation of aries-cloudagent 0.10.3. Based on Debian Buster."
+  }
+}
