@@ -120,7 +120,7 @@ jobs:
     - name: Prepare docker tags for image
       id: meta
       if: contains(fromJSON('["aries-endorser-db","aries-endorser-agent","aries-endorser-backup","aries-endorser-api","aries-endorser-proxy"]'), matrix.service)
-      uses: docker/metadata-action@v4
+      uses: docker/metadata-action@v5
       with:
         images: ghcr.io/bcgov/dts-endorser-service/${{ matrix.service }}
         flavor: |
@@ -135,6 +135,8 @@ jobs:
           type=sha,value=latest
         labels: |
           acapy.version=0.1O.3
+        annotations: |
+          org.opencontainers.image.description="Hyperledger Aries Cloud Agent Python (ACA-Py) is a foundation for building decentralized id"
           
 
     - name: Update Docker base image and pull the base image if access is required 
