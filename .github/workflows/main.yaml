@@ -166,8 +166,8 @@ jobs:
         file: ${{ matrix.SOURCE_CONTEXT_DIR }}/${{ matrix.DOCKER_FILE_PATH }}
         push: true
         tags: ${{ steps.meta.outputs.tags }}
-        annotations: ${{ steps.meta.outputs.annotations }}
-
+        # annotations: ${{ steps.meta.outputs.annotations }}
+        outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=My multi-arch image
       #  labels: ${{ steps.meta.outputs.labels }}
         # labels: |
         #   acapy.version=0.1O.3
