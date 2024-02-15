@@ -163,16 +163,14 @@ jobs:
         file: ${{ matrix.SOURCE_CONTEXT_DIR }}/${{ matrix.DOCKER_FILE_PATH }}
         push: true
         tags: ${{ steps.meta.outputs.tags }}
-        # annotations: ${{ steps.meta.outputs.annotations }}
         outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=Hyperledger Aries Cloud Agent Python (ACA-Py) is a foundation for building decentralized id
-        labels: |
-          io.buildah.version=1.29.0
-          io.openshift.build.commit.message= Allow None in model for EndorserTransaction.transaction_request 
-          io.openshift.build.commit.ref=main
-          io.openshift.build.namespace=4a9599-tools
-          io.openshift.build.source-context-dir=docker/acapy
-          io.openshift.build.source-location=https://github.com/bcgov/aries-endorser-service.git
-
+        labels: | 
+          # io.openshift.build.commit.ref=main
+          # io.openshift.build.namespace=4a9599-tools
+          # io.openshift.build.source-context-dir=docker/acapy
+          # io.openshift.build.source-location=https://github.com/bcgov/aries-endorser-service.git
+          io.openshift.build.source-location=${{ github.repositoryUrl }}
+          io.openshift.build.commit.id=${{ github.sha }}
         # labels: |
         #   acapy.version=0.1O.3
         #   description = aries-cloudagent provides a base image for running Hyperledger Aries agents in Docker. This 
