@@ -166,8 +166,8 @@ jobs:
         # annotations: ${{ steps.meta.outputs.annotations }}
         outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=Hyperledger Aries Cloud Agent Python (ACA-Py) is a foundation for building decentralized id
         labels: |
-          io.openshift.foo=HelloRaj
-          io.buildah.version=126.4
+          io.buildah.version=1.29.0
+          io.openshift.build.commit.message= Allow None in model for EndorserTransaction.transaction_request 
           io.openshift.build.commit.ref=main
           io.openshift.build.namespace=4a9599-tools
           io.openshift.build.source-context-dir=docker/acapy
