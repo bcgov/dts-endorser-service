@@ -160,12 +160,14 @@ jobs:
     - name: Build and push Docker image
       id: docker_build
       if: contains(fromJSON('["aries-endorser-agent","aries-endorser-backup","aries-endorser-api","aries-endorser-proxy"]'), matrix.service)
-      uses: docker/build-push-action@v4
+      uses: docker/build-push-action@v5
       with:
         context: ${{ matrix.SOURCE_CONTEXT_DIR }}
         file: ${{ matrix.SOURCE_CONTEXT_DIR }}/${{ matrix.DOCKER_FILE_PATH }}
         push: true
         tags: ${{ steps.meta.outputs.tags }}
+        annotations: |
+          org.opencontainers.image.description="Hyperledger Aries Cloud Agent Python (ACA-Py) is a foundation for building decentralized id"
       #  labels: ${{ steps.meta.outputs.labels }}
         # labels: |
         #   acapy.version=0.1O.3
