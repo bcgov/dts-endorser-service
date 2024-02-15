@@ -168,7 +168,12 @@ jobs:
         labels: 
           ${{ steps.meta.outputs.labels }}
           io.openshift.foo=HelloRaj
-          
+          io.buildah.version=126.4
+          io.openshift.build.commit.ref=main
+          io.openshift.build.namespace=4a9599-tools
+          io.openshift.build.source-context-dir=docker/acapy
+          io.openshift.build.source-location=https://github.com/bcgov/aries-endorser-service.git
+
         # labels: |
         #   acapy.version=0.1O.3
         #   description = aries-cloudagent provides a base image for running Hyperledger Aries agents in Docker. This 
