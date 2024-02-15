@@ -133,7 +133,10 @@ jobs:
           type=semver,pattern={{major}}.{{minor}}
           type=semver,pattern={{major}}
           type=sha,value=latest
+        labels: |
+          acapy.version=0.1O.3
           
+
     - name: Update Docker base image and pull the base image if access is required 
       if:   matrix.BASE_SOURCE_IMAGE_REGISTRY  != '' && contains(fromJSON('["aries-endorser-db","aries-endorser-agent","aries-endorser-backup","aries-endorser-api","aries-endorser-proxy"]'), matrix.service)
       run: |  
@@ -162,25 +165,25 @@ jobs:
         push: true
         tags: ${{ steps.meta.outputs.tags }}
       #  labels: ${{ steps.meta.outputs.labels }}
-        labels: |
-          acapy.version=0.1O.3
-          description = aries-cloudagent provides a base image for running Hyperledger Aries agents in Docker. This 
-          io.buildah.version=126.4
-          io.k8s.description=aries-cloudagent provides a base image for running Hyperledger Aries agents in Docker. This
-          io.k8s.display-name=aries-endorser-agent-15
-          4a9599-tools
-          io.openshift.build.namespace=
-          io.openshift.build.source-context-dir=docker/acapy
-          maintainer=aries-coudagent
-          org.opencontainers.image.created=2023-09-29T16:15:13.175Z
-          org.opencontainers.image.description=Hyperledger Aries Cloud Agent Python (ACA-Py) is a foundation for building decentralized id
-          org.opencontainers.image.licenses=Apache-2.0
-          org.opencontainers.image.revision=736cdfb38b68900b779e6159f8a16d299127fdc8
-          org.opencontainers.image.source=https://github.com/hyperledger/aries-cloudagent-python
-          org.opencontainers.image.title=aries-doudagent-Python
-          org.opencontainers.image.url=https://github.com/hyperledger/aries-cloudagent-python
-          Py39-0103
-          org.opencontainers.image.version=aries-cloudaaent image
+        # labels: |
+        #   acapy.version=0.1O.3
+        #   description = aries-cloudagent provides a base image for running Hyperledger Aries agents in Docker. This 
+        #   io.buildah.version=126.4
+        #   io.k8s.description=aries-cloudagent provides a base image for running Hyperledger Aries agents in Docker. This
+        #   io.k8s.display-name=aries-endorser-agent-15
+        #   4a9599-tools
+        #   io.openshift.build.namespace=
+        #   io.openshift.build.source-context-dir=docker/acapy
+        #   maintainer=aries-coudagent
+        #   org.opencontainers.image.created=2023-09-29T16:15:13.175Z
+        #   org.opencontainers.image.description=Hyperledger Aries Cloud Agent Python (ACA-Py) is a foundation for building decentralized id
+        #   org.opencontainers.image.licenses=Apache-2.0
+        #   org.opencontainers.image.revision=736cdfb38b68900b779e6159f8a16d299127fdc8
+        #   org.opencontainers.image.source=https://github.com/hyperledger/aries-cloudagent-python
+        #   org.opencontainers.image.title=aries-doudagent-Python
+        #   org.opencontainers.image.url=https://github.com/hyperledger/aries-cloudagent-python
+        #   Py39-0103
+        #   org.opencontainers.image.version=aries-cloudaaent image
           
     - name: Pull database image
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
