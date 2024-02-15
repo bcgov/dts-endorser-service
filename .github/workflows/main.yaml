@@ -166,8 +166,8 @@ jobs:
         file: ${{ matrix.SOURCE_CONTEXT_DIR }}/${{ matrix.DOCKER_FILE_PATH }}
         push: true
         tags: ${{ steps.meta.outputs.tags }}
-        annotations: |
-          org.opencontainers.image.description="Hyperledger Aries Cloud Agent Python (ACA-Py) is a foundation for building decentralized id"
+        annotations: ${{ steps.meta.outputs.annotations }}
+
       #  labels: ${{ steps.meta.outputs.labels }}
         # labels: |
         #   acapy.version=0.1O.3
