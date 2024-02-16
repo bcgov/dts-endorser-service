@@ -167,25 +167,6 @@ jobs:
         labels: | 
           io.openshift.build.source-location=${{ github.repositoryUrl }}
           io.openshift.build.commit.id=${{ github.sha }}
-        # labels: |
-        #   acapy.version=0.1O.3
-        #   description = aries-cloudagent provides a base image for running Hyperledger Aries agents in Docker. This 
-        #   io.buildah.version=126.4
-        #   io.k8s.description=aries-cloudagent provides a base image for running Hyperledger Aries agents in Docker. This
-        #   io.k8s.display-name=aries-endorser-agent-15
-        #   4a9599-tools
-        #   io.openshift.build.namespace=
-        #   io.openshift.build.source-context-dir=docker/acapy
-        #   maintainer=aries-coudagent
-        #   org.opencontainers.image.created=2023-09-29T16:15:13.175Z
-        #   org.opencontainers.image.description=Hyperledger Aries Cloud Agent Python (ACA-Py) is a foundation for building decentralized id
-        #   org.opencontainers.image.licenses=Apache-2.0
-        #   org.opencontainers.image.revision=736cdfb38b68900b779e6159f8a16d299127fdc8
-        #   org.opencontainers.image.source=https://github.com/hyperledger/aries-cloudagent-python
-        #   org.opencontainers.image.title=aries-doudagent-Python
-        #   org.opencontainers.image.url=https://github.com/hyperledger/aries-cloudagent-python
-        #   Py39-0103
-        #   org.opencontainers.image.version=aries-cloudaaent image
           
     - name: Pull database image
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
@@ -273,17 +254,6 @@ jobs:
           deployment_configuration: ${{ matrix.service }}
           openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
   #         rocketchat_webhook: ${{ secrets.ROCKETCHAT_WEBHOOK }}
-
-  #         # docker pull ghcr.io/bcgov/dts-endorser-service@sha256:57f946ab1053726ac6fcb71c85a98d355e926904ebe26db4798353668b3f6c68
-
-  #         # docker pull ghcr.io/bcgov/dts-endorser-service/aries-endorser-api:sha-e237467
-  #         # docker pull ${{ inputs.github_image_name }}@${{ inputs.image_digest }}
-  #         # github_image_name: ${{ env.GITHUB_IMAGE_REPO }}${{ matrix.service }}
-  #         # GITHUB_IMAGE_REPO: ghcr.io/bcgov/dts-endorser-service
-  #         # docker pull ghcr.io/bcgov/dts-endorser-service
-  #         # github_image_name: ghcr.io/bcgov/dts-endorser-service
-  #         # docker push ghcr.io/bcgov/dts-endorser-service/aries-endorser-api
-  #         # rocketchat_webhook: ${{ secrets.ROCKETCHAT_WEBHOOK }}
 
   # # deploy2test:
   # #   needs: [build, deploy2dev]
