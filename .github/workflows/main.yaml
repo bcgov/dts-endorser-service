@@ -114,7 +114,7 @@ jobs:
       if: contains(fromJSON('["aries-endorser-db","aries-endorser-agent","aries-endorser-backup","aries-endorser-api","aries-endorser-proxy"]'), matrix.service)
       uses: docker/metadata-action@v5
       with:
-        images: env.GITHUB_IMAGE_REPO/${{ matrix.service }}
+        images: ${{ env.GITHUB_IMAGE_REPO }}/${{ matrix.service }}
         flavor: |
           latest=true
         tags: |
