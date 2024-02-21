@@ -55,11 +55,11 @@ jobs:
             GIT_REPO_URL: hyperledger/aries-endorser-service
             DOCKER_FILE_PATH: Dockerfile.endorser # The docker path, file, is the relative path to the docker file from the root of the repo.
             SOURCE_CONTEXT_DIR: endorser # The context dir, context, sets the context for the build. i.e. where the build will source files from
-            BASE_SOURCE_IMAGE_REGISTRY: artifacts.developer.gov.bc.ca/docker-remote/
-            BASE_SOURCE_IMAGE_NAME: python
-            BASE_SOURCE_IMAGE_TAG: 3.10-slim-buster
-            REGISTRY_USERNAME_SECRET_NAME: ARTIFACTORY_USERNAME 
-            REGISTRY_PASSWORD_SECRET_NAME: ARTIFACTORY_PASSWORD 
+            SOURCE_IMAGE_REGISTRY: artifacts.developer.gov.bc.ca/docker-remote/
+            SOURCE_IMAGE_NAME: python
+            SOURCE_IMAGE_TAG: 3.10-slim-buster
+            REGISTRY_USERNAME: ARTIFACTORY_USERNAME 
+            REGISTRY_PASSWORD: ARTIFACTORY_PASSWORD 
     outputs:
       aries-endorser-agent_digest: ${{ steps.digest.outputs.aries-endorser-agent_digest }} 
       aries-endorser-backup_digest: ${{ steps.digest.outputs.aries-endorser-backup_digest }} 
@@ -70,17 +70,9 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-      with: 
+      with:
         repository: ${{ matrix.GIT_REPO_URL }}
-        ref: ${{ github.event.tag }} 
-      if: ${{ github.event.tag != '' }}
-
-    - name: Checkout
-      uses: actions/checkout@v4
-      with: 
-        repository: ${{ matrix.GIT_REPO_URL }}
-        ref: ${{ github.event.branch }} 
-      if: ${{ github.event.tag == '' }}
+        ref: ${{ github.event.ref || github.event.inputs.tag || github.event.inputs.branch || 'main' }}
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -122,7 +114,7 @@ jobs:
       if: contains(fromJSON('["aries-endorser-db","aries-endorser-agent","aries-endorser-backup","aries-endorser-api","aries-endorser-proxy"]'), matrix.service)
       uses: docker/metadata-action@v5
       with:
-        images: ghcr.io/bcgov/dts-endorser-service/${{ matrix.service }}
+        images: env.GITHUB_IMAGE_REPO/${{ matrix.service }}
         flavor: |
           latest=true
         tags: |
@@ -133,8 +125,9 @@ jobs:
           type=semver,pattern={{major}}.{{minor}}
           type=semver,pattern={{major}}
           type=sha,value=latest     
-        annotations: |
-          org.opencontainers.image.description="Hyperledger Aries Cloud Agent Python (ACA-Py) is a foundation for building decentralized id"
+        labels: | 
+          io.openshift.build.source-location=${{ github.repositoryUrl }}
+          io.openshift.build.commit.id=${{ github.sha }}
           
     - name: Update Docker base image and pull the base image if access is required 
       if:   matrix.BASE_SOURCE_IMAGE_REGISTRY  != '' && contains(fromJSON('["aries-endorser-db","aries-endorser-agent","aries-endorser-backup","aries-endorser-api","aries-endorser-proxy"]'), matrix.service)
@@ -163,16 +156,13 @@ jobs:
         file: ${{ matrix.SOURCE_CONTEXT_DIR }}/${{ matrix.DOCKER_FILE_PATH }}
         push: true
         tags: ${{ steps.meta.outputs.tags }}
-        outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=Hyperledger Aries Cloud Agent Python (ACA-Py) is a foundation for building decentralized id
-        labels: | 
-          io.openshift.build.source-location=${{ github.repositoryUrl }}
-          io.openshift.build.commit.id=${{ github.sha }}
+        outputs: type=image,name=target
           
     - name: Pull database image
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
       run: |
         docker pull ${{ matrix.BUILDER_IMAGE }}
-    - name: Extract Values
+    - name: Extract Tags
       id: extract
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
       run: echo "tags=$(echo '${{  steps.meta.outputs.tags  }}' | grep -oE ':([^[:space:]]+)' |  sed '/workflow/d' | sed 's/://g' | tr '\n' ' ')" >> $GITHUB_OUTPUT
@@ -205,7 +195,7 @@ jobs:
       run:  |
         echo "registry_path=${{ steps.push.outputs.registry-paths }}"
         digest=${{ steps.push.outputs.digest }}
-        echo 'digest=${digest}'
+        echo "digest=${digest}"
         echo "${{ matrix.service }}_digest=${digest}" >> $GITHUB_OUTPUT
         
     - name: Display ${{ matrix.service}} image results
@@ -214,7 +204,7 @@ jobs:
       run: |
         echo 'imageid=${{ steps.docker_build.outputs.imageid }}'
         digest=${{ steps.docker_build.outputs.digest }}
-        echo 'digest=${digest}'
+        echo "digest=${digest}"
         echo "${{ matrix.service }}_digest=${digest}" >> $GITHUB_OUTPUT
         cat $GITHUB_OUTPUT
 
