@@ -35,11 +35,11 @@ jobs:
             SOURCE_IMAGE_TAG: ""
             REGISTRY_USERNAME_SECRET_NAME: ARTIFACTORY_USERNAME 
             REGISTRY_PASSWORD_SECRET_NAME: ARTIFACTORY_PASSWORD
-          - service: aries-endorser-db
-            GIT_REPO_URL: hyperledger/aries-endorser-service
-            GIT REPO: ""
-            PATH:  docker/wallet/config
-            BUILDER_IMAGE: 'quay.io/fedora/postgresql-13:13'
+          # - service: aries-endorser-db
+          #   GIT_REPO_URL: hyperledger/aries-endorser-service
+          #   GIT REPO: ""
+          #   PATH:  docker/wallet/config
+          #   BUILDER_IMAGE: 'quay.io/fedora/postgresql-13:13'
           - service: aries-endorser-backup
             GIT_REPO_URL: BCDevOps/backup-container
             GIT REPO: ""
@@ -163,27 +163,27 @@ jobs:
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
       run: echo "tags=$(echo '${{  steps.meta.outputs.tags  }}' | grep -oE ':([^[:space:]]+)' |  sed '/workflow/d' | sed 's/://g' | tr '\n' ' ')" >> $GITHUB_OUTPUT
 
-    - name: Build database image
-      id: build_image
-      if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
-      uses: redhat-actions/s2i-build@v2
-      with:
-        path_context: ${{ matrix.PATH }}
-        # Builder image for a java project
-        builder_image: ${{ matrix.BUILDER_IMAGE }}
-        image:  dts-endorser-service/${{ matrix.service }}
-        tags: ${{ steps.extract.outputs.tags }}
+    # - name: Build database image
+    #   id: build_image
+    #   if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
+    #   uses: redhat-actions/s2i-build@v2
+    #   with:
+    #     path_context: ${{ matrix.PATH }}
+    #     # Builder image for a java project
+    #     builder_image: ${{ matrix.BUILDER_IMAGE }}
+    #     image:  dts-endorser-service/${{ matrix.service }}
+    #     tags: ${{ steps.extract.outputs.tags }}
 
-    - name: Push database image
-      id: push
-      if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
-      uses: redhat-actions/push-to-registry@v2
-      with:
-        tags: ${{ steps.build_image.outputs.tags }}
-        image:  ${{ steps.build_image.outputs.image }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-        registry: ghcr.io/bcgov
+    # - name: Push database image
+    #   id: push
+    #   if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
+    #   uses: redhat-actions/push-to-registry@v2
+    #   with:
+    #     tags: ${{ steps.build_image.outputs.tags }}
+    #     image:  ${{ steps.build_image.outputs.image }}
+    #     username: ${{ github.actor }}
+    #     password: ${{ secrets.GITHUB_TOKEN }}
+    #     registry: ghcr.io/bcgov
 
     - name: Display ${{ matrix.service }} image results
       id: digests
