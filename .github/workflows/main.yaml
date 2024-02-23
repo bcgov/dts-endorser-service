@@ -134,7 +134,7 @@ jobs:
     - name: Update Docker base image and pull the base image if access is required 
       if:   matrix.SOURCE_IMAGE_REGISTRY  != '' && contains(fromJSON('["aries-endorser-db","aries-endorser-agent","aries-endorser-backup","aries-endorser-api","aries-endorser-proxy"]'), matrix.service)
       run: |  
-        BASE_IMAGE="${BASE_SOURCE_IMAGE_REGISTRY}${BASE_SOURCE_IMAGE_NAME}:${BASE_SOURCE_IMAGE_TAG}"
+        BASE_IMAGE="${SOURCE_IMAGE_REGISTRY}${SOURCE_IMAGE_NAME}:${SOURCE_IMAGE_TAG}"
         sed -i -e "s;FROM .*;FROM ${BASE_IMAGE};g" "$file"
       env:
         context: ${{ matrix.SOURCE_CONTEXT_DIR }}
