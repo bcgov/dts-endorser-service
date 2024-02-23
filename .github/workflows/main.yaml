@@ -89,7 +89,6 @@ jobs:
        username: ${{ secrets[matrix.REGISTRY_USERNAME_SECRET_NAME]}}
        password: ${{ secrets[matrix.REGISTRY_PASSWORD_SECRET_NAME]}}
 
-
     - name: Pull base image for proxy and Create Docker file
       if: contains(fromJSON('["aries-endorser-proxy"]'), matrix.service)
       run: |
@@ -132,7 +131,7 @@ jobs:
           io.openshift.build.commit.id=${{ github.sha }}
           
     - name: Update Docker base image and pull the base image if access is required 
-      if:   matrix.SOURCE_IMAGE_REGISTRY  != '' && contains(fromJSON('["aries-endorser-db","aries-endorser-agent","aries-endorser-backup","aries-endorser-api","aries-endorser-proxy"]'), matrix.service)
+      if: matrix.SOURCE_IMAGE_REGISTRY  != '' && contains(fromJSON('["aries-endorser-db","aries-endorser-agent","aries-endorser-backup","aries-endorser-api","aries-endorser-proxy"]'), matrix.service)
       run: |  
         BASE_IMAGE="${SOURCE_IMAGE_REGISTRY}${SOURCE_IMAGE_NAME}:${SOURCE_IMAGE_TAG}"
         sed -i -e "s;FROM .*;FROM ${BASE_IMAGE};g" "$file"
