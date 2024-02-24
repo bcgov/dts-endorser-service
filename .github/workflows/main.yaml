@@ -39,7 +39,7 @@ jobs:
             GIT_REPO_URL: hyperledger/aries-endorser-service
             GIT_REF: ""
             PATH:  docker/wallet/config
-            SOURCE_IMAGE_REGISTRY: "hub.docker.com/"
+            SOURCE_IMAGE_REGISTRY: "docker.io/"
             SOURCE_IMAGE_NAME: "alpine"
             SOURCE_IMAGE_TAG: "latest"
           - service: aries-endorser-backup
@@ -151,7 +151,7 @@ jobs:
       with:
         path_context: ${{ matrix.PATH }}
         # Builder image for a java projectE_IMAG
-        builder_image:  ${{ matrix.SOURCE_IMAGE_REGISTRY }}${{ matrix.SOURCE_NAME }}:${{ matrix.SOURCE_IMAGE_TAG }}
+        builder_image:  ${{ matrix.SOURCE_IMAGE_REGISTRY }}${{ matrix.SOURCE_IMAGE_NAME }}:${{ matrix.SOURCE_IMAGE_TAG }}
         image: ${{ env.GITHUB_IMAGE_REPO }}${{ matrix.service }}
         tags: ${{ steps.extract.outputs.tags }}
   
