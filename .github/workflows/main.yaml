@@ -27,8 +27,7 @@ jobs:
         include:
           - service: aries-endorser-agent
             GIT_REPO_URL: hyperledger/aries-endorser-service 
-            GIT_REPO: ""
-            BRANCH: move-tests-to-askar
+            GIT_REF: ""
             DOCKER_FILE_PATH: Dockerfile.acapy # The docker path, file, is the relative path to the docker file from the root of the repo.
             SOURCE_CONTEXT_DIR: docker/acapy   # The context dir, context, sets the context for the build. i.e. where the build will source files from 
             SOURCE_IMAGE_REGISTRY: ""
@@ -36,16 +35,15 @@ jobs:
             SOURCE_IMAGE_TAG: ""
             REGISTRY_USERNAME_SECRET_NAME: ARTIFACTORY_USERNAME 
             REGISTRY_PASSWORD_SECRET_NAME: ARTIFACTORY_PASSWORD
-          - service: aries-endorser-db
-            GIT_REPO_URL: hyperledger/aries-endorser-service
-            GIT_REPO: ""
-            BRANCH: move-tests-to-askar
-            PATH:  docker/wallet/config
-            BUILDER_IMAGE: 'quay.io/fedora/postgresql-13:13'
+          # - service: aries-endorser-db
+          #   GIT_REPO_URL: hyperledger/aries-endorser-service
+          #   GIT_REF: ""
+          #   BRANCH: move-tests-to-askar
+          #   PATH:  docker/wallet/config
+          #   BUILDER_IMAGE: 'quay.io/fedora/postgresql-13:13'
           - service: aries-endorser-backup
             GIT_REPO_URL: BCDevOps/backup-container
-            GIT_REPO: ""
-            BRANCH: master
+            GIT_REF: ""
             DOCKER_FILE_PATH: Dockerfile  # The docker path, file, is the relative path to the docker file from the root of the repo.
             SOURCE_CONTEXT_DIR: docker    # The context dir, context, sets the context for the build. i.e. where the build will source files from
             SOURCE_IMAGE_REGISTRY: ""
@@ -54,8 +52,7 @@ jobs:
             REGISTRY_USERNAME_SECRET_NAME: ARTIFACTORY_USERNAME 
             REGISTRY_PASSWORD_SECRET_NAME: ARTIFACTORY_PASSWORD 
           - service: aries-endorser-proxy
-            GIT_REPO: ""
-            BRANCH: workflow
+            GIT_REF: ""
             DOCKER_FILE_PATH: Dockerfile  # The docker path, file, is the relative path to the docker file from the root of the repo.
             SOURCE_CONTEXT_DIR: proxy     # The context dir, context, sets the context for the build. i.e. where the build will source files from
             SOURCE_IMAGE_REGISTRY: "artifacts.developer.gov.bc.ca/docker-remote/"
@@ -65,7 +62,7 @@ jobs:
             REGISTRY_PASSWORD_SECRET_NAME: ARTIFACTORY_PASSWORD 
           - service: aries-endorser-api
             GIT_REPO_URL: hyperledger/aries-endorser-service
-            GIT_REPO: ""
+            GIT_REF: ""
             BRANCH: move-tests-to-askar
             DOCKER_FILE_PATH: Dockerfile.endorser # The docker path, file, is the relative path to the docker file from the root of the repo.
             SOURCE_CONTEXT_DIR: endorser # The context dir, context, sets the context for the build. i.e. where the build will source files from
@@ -86,7 +83,7 @@ jobs:
       uses: actions/checkout@v4
       with: 
         repository: ${{ matrix.GIT_REPO_URL }}
-        ref: ${{ github.ref }}
+        ref: ${{ matrix.GIT_REF }}
   
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -176,7 +173,7 @@ jobs:
     #     path_context: ${{ matrix.PATH }}
     #     # Builder image for a java project
     #     builder_image: ${{ matrix.BUILDER_IMAGE }}
-    #     image:  dts-endorser-service/${{ matrix.service }}
+    #     image: ${{ env.GITHUB_IMAGE_REPO }}${{ matrix.service }}
     #     tags: ${{ steps.extract.outputs.tags }}
 
     # - name: Push database image
@@ -188,7 +185,6 @@ jobs:
     #     image:  ${{ steps.build_image.outputs.image }}
     #     username: ${{ github.actor }}
     #     password: ${{ secrets.GITHUB_TOKEN }}
-    #     registry: ghcr.io/bcgov
 
     - name: Display ${{ matrix.service }} image results
       id: digests
