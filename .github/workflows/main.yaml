@@ -144,6 +144,11 @@ jobs:
         SOURCE_IMAGE_TAG: ${{ matrix.SOURCE_IMAGE_TAG }}
         file: ${{ matrix.SOURCE_CONTEXT_DIR }}/${{ matrix.DOCKER_FILE_PATH }}
 
+    - name: Extract Tags
+      id: extract
+      if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
+      run: echo "tags=$(echo '${{  steps.meta.outputs.tags  }}' | grep -oE ':([^[:space:]]+)' |  sed '/workflow/d' | sed 's/://g' | tr '\n' ' ')" >> $GITHUB_OUTPUT
+  
     - name: Build database image
       id: build_image
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
@@ -183,11 +188,6 @@ jobs:
         tags: ${{ steps.meta.outputs.tags }}
         outputs: type=image,name=target
         
-    - name: Extract Tags
-      id: extract
-      if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
-      run: echo "tags=$(echo '${{  steps.meta.outputs.tags  }}' | grep -oE ':([^[:space:]]+)' |  sed '/workflow/d' | sed 's/://g' | tr '\n' ' ')" >> $GITHUB_OUTPUT
-
     - name: Display ${{ matrix.service }} image results
       id: digests
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
