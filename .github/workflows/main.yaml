@@ -174,7 +174,7 @@ jobs:
         image:  ${{ steps.build_image.outputs.image }}
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-        registry: ghcr.io/bcgov
+        registry: ${{ env.GITHUB_IMAGE_REPO }}
 
     - name: Log in to the GHCR
       uses: docker/login-action@v3
