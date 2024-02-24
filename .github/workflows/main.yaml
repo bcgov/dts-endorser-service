@@ -162,7 +162,7 @@ jobs:
         path_context: ${{ matrix.PATH }}
         # Builder image for a java projectE_IMAG
         builder_image:  ${{ matrix.SOURCE_IMAGE_REGISTRY }}${{ matrix.SOURCE_IMAGE_NAME }}:${{ matrix.SOURCE_IMAGE_TAG }}
-        image: ${{ env.GITHUB_IMAGE_REPO }}${{ matrix.service }}
+        image: dts-endorser-service/${{ matrix.service }}
         tags: ${{ steps.extract.outputs.tags }}
   
     - name: Push database image
