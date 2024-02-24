@@ -38,7 +38,6 @@ jobs:
           - service: aries-endorser-db
             GIT_REPO_URL: hyperledger/aries-endorser-service
             GIT_REF: ""
-            BRANCH: move-tests-to-askar
             PATH:  docker/wallet/config
             SOURCE_IMAGE_REGISTRY: "hub.docker.com/"
             SOURCE_IMAGE_NAME: "alpine"
@@ -65,7 +64,6 @@ jobs:
           - service: aries-endorser-api
             GIT_REPO_URL: hyperledger/aries-endorser-service
             GIT_REF: ""
-            BRANCH: move-tests-to-askar
             DOCKER_FILE_PATH: Dockerfile.endorser # The docker path, file, is the relative path to the docker file from the root of the repo.
             SOURCE_CONTEXT_DIR: endorser # The context dir, context, sets the context for the build. i.e. where the build will source files from
             SOURCE_IMAGE_REGISTRY: artifacts.developer.gov.bc.ca/docker-remote/
@@ -87,26 +85,18 @@ jobs:
         repository: ${{ matrix.GIT_REPO_URL }}
         ref: ${{ matrix.GIT_REF }}
 #        ref: github.ref
-
         
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
     - name: Login to image registry
-      if: matrix.SOURCE_IMAGE_REGISTRY  != '' && contains(fromJSON('["aries-endorser-db","aries-endorser-agent","aries-endorser-backup","aries-endorser-api","aries-endorser-proxy"]'), matrix.service)
+      if: matrix.SOURCE_IMAGE_REGISTRY  != '' && contains(fromJSON('["aries-endorser-agent","aries-endorser-backup","aries-endorser-api","aries-endorser-proxy"]'), matrix.service)
       uses: docker/login-action@v3
       with:
        registry: ${{ matrix.SOURCE_IMAGE_REGISTRY }}
        username: ${{ secrets[matrix.REGISTRY_USERNAME_SECRET_NAME]}}
        password: ${{ secrets[matrix.REGISTRY_PASSWORD_SECRET_NAME]}}
-
-    - name: Log in to the GHCR
-      uses: docker/login-action@v3
-      with:
-       registry: ghcr.io
-       username: ${{ github.actor }}
-       password: ${{ secrets.GITHUB_TOKEN }}       
-
+     
     - name: Create Docker file
       if: contains(fromJSON('["aries-endorser-proxy"]'), matrix.service)
       run: |
@@ -120,8 +110,6 @@ jobs:
         SOURCE_IMAGE_REGISTRY: ${{ matrix.SOURCE_IMAGE_REGISTRY }}
         SOURCE_IMAGE_NAME: ${{ matrix.SOURCE_IMAGE_NAME }}
         SOURCE_IMAGE_TAG: ${{ matrix.SOURCE_IMAGE_TAG }}
-
-
 
     - name: Prepare docker tags for image
       id: meta
@@ -175,7 +163,6 @@ jobs:
         image:  ${{ steps.build_image.outputs.image }}
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-
 
     - name: Build and push Docker image
       id: docker_build
