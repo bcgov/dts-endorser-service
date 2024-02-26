@@ -213,41 +213,41 @@ jobs:
         echo "${{ matrix.service }}_digest=${digest}" >> $GITHUB_OUTPUT
         cat $GITHUB_OUTPUT
 
-  # deploy2dev:
-  #   needs: build
-  #   env:
-  #     ENVIRONMENT: dev           
-  #   permissions:
-  #     packages: write
-  #   runs-on: ubuntu-latest
-  #   environment: dev
-  #   strategy:
-  #     # Serialize the deployments
-  #     max-parallel: 1
-  #     matrix:
-  #       include:
-  #         # - service: aries-endorser-db
-  #         - service: aries-endorser-agent
-  #         - service: aries-endorser-backup
-  #         - service: aries-endorser-proxy
-  #         - service: aries-endorser-api
+  deploy2dev:
+    needs: build
+    env:
+      ENVIRONMENT: dev           
+    permissions:
+      packages: write
+    runs-on: ubuntu-latest
+    environment: dev
+    strategy:
+      # Serialize the deployments
+      max-parallel: 1
+      matrix:
+        include:
+          # - service: aries-endorser-db
+          - service: aries-endorser-agent
+          - service: aries-endorser-backup
+          - service: aries-endorser-proxy
+          - service: aries-endorser-api
   
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
   
-  #     - name: Deploy to ${{ env.ENVIRONMENT }}
-  #       uses: ./.github/workflows/actions/deploy
-  #       with:
-  #         environment: ${{ env.ENVIRONMENT }}
-  #         ghcr_token: ${{ secrets.GITHUB_TOKEN }}
-  #         github_image_name: ${{ env.GITHUB_IMAGE_REPO }}${{ matrix.service }}
-  #         image_digest: ${{ needs.build.outputs[format ('{0}_digest', matrix.service)] }}
-  #         openshift_image_name: ${{ env.OPENSHIFT_IMAGE_REPO }}${{ matrix.service }}
-  #         openshift_server_url: ${{ vars.OPENSHIFT_SERVER_URL }}
-  #         namespace: ${{ vars.NAMESPACE }}
-  #         deployment_configuration: ${{ matrix.service }}
-  #         openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
+      - name: Deploy to ${{ env.ENVIRONMENT }}
+        uses: ./.github/workflows/actions/deploy
+        with:
+          environment: ${{ env.ENVIRONMENT }}
+          ghcr_token: ${{ secrets.GITHUB_TOKEN }}
+          github_image_name: ${{ env.GITHUB_IMAGE_REPO }}${{ matrix.service }}
+          image_digest: ${{ needs.build.outputs[format ('{0}_digest', matrix.service)] }}
+          openshift_image_name: ${{ env.OPENSHIFT_IMAGE_REPO }}${{ matrix.service }}
+          openshift_server_url: ${{ vars.OPENSHIFT_SERVER_URL }}
+          namespace: ${{ vars.NAMESPACE }}
+          deployment_configuration: ${{ matrix.service }}
+          openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
           # rocketchat_webhook: ${{ secrets.ROCKETCHAT_WEBHOOK }}
 
   # # deploy2test:
