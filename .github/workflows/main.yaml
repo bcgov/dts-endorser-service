@@ -35,13 +35,13 @@ jobs:
             SOURCE_IMAGE_TAG: ""
             REGISTRY_USERNAME_SECRET_NAME: ARTIFACTORY_USERNAME 
             REGISTRY_PASSWORD_SECRET_NAME: ARTIFACTORY_PASSWORD
-          # - service: aries-endorser-db
-          #   GIT_REPO_URL: hyperledger/aries-endorser-service
-          #   GIT_REF: ""
-          #   PATH:  docker/wallet/config
-          #   SOURCE_IMAGE_REGISTRY: "quay.io/"  
-          #   SOURCE_IMAGE_NAME: "fedora/postgresql-13"
-          #   SOURCE_IMAGE_TAG: "13"
+          - service: aries-endorser-db
+            GIT_REPO_URL: hyperledger/aries-endorser-service
+            GIT_REF: ""
+            PATH:  docker/wallet/config
+            SOURCE_IMAGE_REGISTRY: "quay.io/"  
+            SOURCE_IMAGE_NAME: "fedora/postgresql-13"
+            SOURCE_IMAGE_TAG: "13"
           - service: aries-endorser-backup
             GIT_REPO_URL: BCDevOps/backup-container
             GIT_REF: ""
@@ -76,7 +76,7 @@ jobs:
       aries-endorser-backup_digest: ${{ steps.digest.outputs.aries-endorser-backup_digest }} 
       aries-endorser-api_digest: ${{ steps.digest.outputs.aries-endorser-api_digest }}
       aries-endorser-proxy_digest: ${{ steps.digest.outputs.aries-endorser-proxy_digest }}
-      # aries-endorser-db_digest: ${{ steps.digests.outputs.aries-endorser-db_digest }}  
+      aries-endorser-db_digest: ${{ steps.digests.outputs.aries-endorser-db_digest }}  
 
     steps:
     - name: Checkout
