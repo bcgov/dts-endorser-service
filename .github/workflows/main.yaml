@@ -226,7 +226,7 @@ jobs:
       max-parallel: 1
       matrix:
         include:
-          # - service: aries-endorser-db
+          - service: aries-endorser-db
           - service: aries-endorser-agent
           - service: aries-endorser-backup
           - service: aries-endorser-proxy
