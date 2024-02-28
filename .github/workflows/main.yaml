@@ -157,7 +157,7 @@ jobs:
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
       uses: redhat-actions/s2i-build@v2
       with:
-        path_context: ${{ matrix.PATH }}
+        path_context: ${{ matrix.SOURCE_CONTEXT_DIR}}
         builder_image: "${{ matrix.SOURCE_IMAGE_REGISTRY }}${{ matrix.SOURCE_IMAGE_NAME }}:${{ matrix.SOURCE_IMAGE_TAG }}"
         image: ${{ matrix.service }}
         tags: ${{ steps.extract.outputs.tags }}
