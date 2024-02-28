@@ -147,10 +147,10 @@ jobs:
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
       run: echo "tags=$(echo '${{  steps.meta.outputs.tags  }}' | grep -oE ':([^[:space:]]+)' |  sed '/workflow/d' | sed 's/://g' | tr '\n' ' ')" >> $GITHUB_OUTPUT
 
-    # - name: Pull database image
-    #   if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
-    #   run: |
-    #     docker pull  ${{ matrix.SOURCE_IMAGE_REGISTRY }}${{ matrix.SOURCE_IMAGE_NAME }}:${{ matrix.SOURCE_IMAGE_TAG }}   
+    - name: Pull database image
+      if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
+      run: |
+        docker pull  ${{ matrix.SOURCE_IMAGE_REGISTRY }}${{ matrix.SOURCE_IMAGE_NAME }}:${{ matrix.SOURCE_IMAGE_TAG }}   
   
     - name: Build database image
       id: build_image
