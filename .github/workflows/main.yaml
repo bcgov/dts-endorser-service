@@ -2,6 +2,11 @@ name: Build and Deploy Image
 
 on:
   workflow_dispatch:
+    inputs:
+      git_ref:
+        description: 'Git ref to build from'
+        required: true
+
   push:
     branches:
       - workflow
@@ -38,7 +43,7 @@ jobs:
           - service: aries-endorser-db
             GIT_REPO_URL: hyperledger/aries-endorser-service
             GIT_REF: ""
-            SOURCE_CONTEXT_DIR:  docker/wallet/config
+            SOURCE_CONTEXT_DIR: docker/wallet/config
             SOURCE_IMAGE_REGISTRY: "quay.io/"  
             SOURCE_IMAGE_NAME: "fedora/postgresql-13"
             SOURCE_IMAGE_TAG: "13"
@@ -145,12 +150,12 @@ jobs:
     - name: Extract Tags
       id: extract
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
-      run: echo "tags=$(echo '${{  steps.meta.outputs.tags  }}' | grep -oE ':([^[:space:]]+)' |  sed '/workflow/d' | sed 's/://g' | tr '\n' ' ')" >> $GITHUB_OUTPUT
+      run: echo "tags=$(echo '${{ steps.meta.outputs.tags }}' | grep -oE ':([^[:space:]]+)' |  sed '/workflow/d' | sed 's/://g' | tr '\n' ' ')" >> $GITHUB_OUTPUT
 
-    - name: Pull database image
-      if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
-      run: |
-        docker pull  ${{ matrix.SOURCE_IMAGE_REGISTRY }}${{ matrix.SOURCE_IMAGE_NAME }}:${{ matrix.SOURCE_IMAGE_TAG }}   
+    # - name: Pull database image
+    #   if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
+    #   run: |
+    #     docker pull  ${{ matrix.SOURCE_IMAGE_REGISTRY }}${{ matrix.SOURCE_IMAGE_NAME }}:${{ matrix.SOURCE_IMAGE_TAG }}   
   
     - name: Build database image
       id: build_image
@@ -173,12 +178,13 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
         registry: ${{ env.GITHUB_IMAGE_REPO }}
 
-    # - name: Log in to the GHCR
-    #   uses: docker/login-action@v3
-    #   with:
-    #     registry: ghcr.io
-    #     username: ${{ github.actor }}
-    #     password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Log in to the GHCR
+      if: contains(fromJSON('["aries-endorser-agent","aries-endorser-backup","aries-endorser-api","aries-endorser-proxy"]'), matrix.service)
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build and push Docker image
       id: docker_build
