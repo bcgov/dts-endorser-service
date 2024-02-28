@@ -101,7 +101,7 @@ jobs:
       run: |
         BASE_IMAGE="${{ matrix.SOURCE_IMAGE_REGISTRY }}${{ matrix.SOURCE_IMAGE_NAME }}:${{ matrix.SOURCE_IMAGE_TAG }}"
         echo "$BASE_IMAGE"
-        mkdir ${{ matrix.SOURCE_CONTEXT_DIR }} && cd ${{ matrix.SOURCE_CONTEXT_DIR }} 
+        mkdir "${{ matrix.SOURCE_CONTEXT_DIR }}" && cd "${{ matrix.SOURCE_CONTEXT_DIR }}"
         echo "FROM ${BASE_IMAGE}" > Dockerfile
         echo "RUN chown 1001:root /usr/bin/caddy" >> Dockerfile
       # env:
@@ -133,7 +133,7 @@ jobs:
     - name: Update Docker base image 
       if: matrix.SOURCE_IMAGE_REGISTRY  != '' && contains(fromJSON('["aries-endorser-agent","aries-endorser-backup","aries-endorser-api","aries-endorser-proxy"]'), matrix.service)
       run: |  
-        BASE_IMAGE="${{ matrix.SOURCE_IMAGE_REGISTRY }}$${{ matrix.SOURCE_IMAGE_NAME }}:${{ matrix.SOURCE_IMAGE_TAG }}"
+        BASE_IMAGE="${{ matrix.SOURCE_IMAGE_REGISTRY }}${{ matrix.SOURCE_IMAGE_NAME }}:${{ matrix.SOURCE_IMAGE_TAG }}"
         sed -i -e "s;FROM .*;FROM ${BASE_IMAGE};g" "${{ matrix.SOURCE_CONTEXT_DIR }}/${{ matrix.DOCKER_FILE_PATH }}"
       # env:
       #   context: ${{ matrix.SOURCE_CONTEXT_DIR }}
