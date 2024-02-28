@@ -161,9 +161,6 @@ jobs:
         builder_image: "${{ matrix.SOURCE_IMAGE_REGISTRY }}${{ matrix.SOURCE_IMAGE_NAME }}:${{ matrix.SOURCE_IMAGE_TAG }}"
         image: ${{ matrix.service }}
         tags: ${{ steps.extract.outputs.tags }}
-        labels: | 
-          ca.bc.gov.digitaltrust.build.source-location=${{ github.repositoryUrl }}
-          ca.bc.gov.digitaltrust.build.commit.id=${{ github.sha }}
   
     - name: Push database image
       id: push
