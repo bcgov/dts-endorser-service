@@ -2,11 +2,6 @@ name: Build and Deploy Image
 
 on:
   workflow_dispatch:
-    inputs:
-      git_ref:
-        description: 'Git ref to build from'
-        required: true
-
   push:
     branches:
       - workflow
@@ -144,7 +139,8 @@ jobs:
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
       run: |
         docker pull  ${{ matrix.SOURCE_IMAGE_REGISTRY }}${{ matrix.SOURCE_IMAGE_NAME }}:${{ matrix.SOURCE_IMAGE_TAG }}   
-  
+      # The docs for redhat-actions/s2i-build imply that the pull should not be needed, yet in practice the build fails if the pull is not done first to make the image local.
+
     - name: Build database image
       id: build_image
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
@@ -154,7 +150,8 @@ jobs:
         builder_image: "${{ matrix.SOURCE_IMAGE_REGISTRY }}${{ matrix.SOURCE_IMAGE_NAME }}:${{ matrix.SOURCE_IMAGE_TAG }}"
         image: ${{ matrix.service }}
         tags: ${{ steps.extract.outputs.tags }}
-  
+      # labels would have to be added to the image after the S2I build
+      
     - name: Push database image
       id: push
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
@@ -207,42 +204,42 @@ jobs:
         echo "${{ matrix.service }}_digest=${digest}" >> $GITHUB_OUTPUT
         cat $GITHUB_OUTPUT
 
-  # deploy2dev:
-  #   needs: build
-  #   env:
-  #     ENVIRONMENT: dev           
-  #   permissions:
-  #     packages: write
-  #   runs-on: ubuntu-latest
-  #   environment: dev
-  #   strategy:
-  #     # Serialize the deployments
-  #     max-parallel: 1
-  #     matrix:
-  #       include:
-  #         - service: aries-endorser-db
-  #         - service: aries-endorser-agent
-  #         - service: aries-endorser-backup
-  #         - service: aries-endorser-proxy
-  #         - service: aries-endorser-api
+  deploy2dev:
+    needs: build
+    env:
+      ENVIRONMENT: dev           
+    permissions:
+      packages: write
+    runs-on: ubuntu-latest
+    environment: dev
+    strategy:
+      # Serialize the deployments
+      max-parallel: 1
+      matrix:
+        include:
+          - service: aries-endorser-db
+          - service: aries-endorser-agent
+          - service: aries-endorser-backup
+          - service: aries-endorser-proxy
+          - service: aries-endorser-api
   
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
   
-  #     - name: Deploy to ${{ env.ENVIRONMENT }}
-  #       uses: ./.github/workflows/actions/deploy
-  #       with:
-  #         environment: ${{ env.ENVIRONMENT }}
-  #         ghcr_token: ${{ secrets.GITHUB_TOKEN }}
-  #         github_image_name: ${{ env.GITHUB_IMAGE_REPO }}${{ matrix.service }}
-  #         image_digest: ${{ needs.build.outputs[format ('{0}_digest', matrix.service)] }}
-  #         openshift_image_name: ${{ env.OPENSHIFT_IMAGE_REPO }}${{ matrix.service }}
-  #         openshift_server_url: ${{ vars.OPENSHIFT_SERVER_URL }}
-  #         namespace: ${{ vars.NAMESPACE }}
-  #         deployment_configuration: ${{ matrix.service }}
-  #         openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
-          # rocketchat_webhook: ${{ secrets.ROCKETCHAT_WEBHOOK }}
+      - name: Deploy to ${{ env.ENVIRONMENT }}
+        uses: ./.github/workflows/actions/deploy
+        with:
+          environment: ${{ env.ENVIRONMENT }}
+          ghcr_token: ${{ secrets.GITHUB_TOKEN }}
+          github_image_name: ${{ env.GITHUB_IMAGE_REPO }}${{ matrix.service }}
+          image_digest: ${{ needs.build.outputs[format ('{0}_digest', matrix.service)] }}
+          openshift_image_name: ${{ env.OPENSHIFT_IMAGE_REPO }}${{ matrix.service }}
+          openshift_server_url: ${{ vars.OPENSHIFT_SERVER_URL }}
+          namespace: ${{ vars.NAMESPACE }}
+          deployment_configuration: ${{ matrix.service }}
+          openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
+          rocketchat_webhook: ${{ secrets.ROCKETCHAT_WEBHOOK }}
 
   # # deploy2test:
   # #   needs: [build, deploy2dev]
