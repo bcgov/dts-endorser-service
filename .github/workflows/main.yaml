@@ -38,8 +38,8 @@ jobs:
             SOURCE_IMAGE_REGISTRY: ""
             SOURCE_IMAGE_NAME: ""
             SOURCE_IMAGE_TAG: ""
-            REGISTRY_USERNAME_SECRET_NAME: ARTIFACTORY_USERNAME 
-            REGISTRY_PASSWORD_SECRET_NAME: ARTIFACTORY_PASSWORD
+            REGISTRY_USERNAME_SECRET_NAME: "" 
+            REGISTRY_PASSWORD_SECRET_NAME: ""
           - service: aries-endorser-db
             GIT_REPO_URL: hyperledger/aries-endorser-service
             GIT_REF: ""
