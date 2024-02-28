@@ -109,15 +109,9 @@ jobs:
         mkdir "${{ matrix.SOURCE_CONTEXT_DIR }}" && cd "${{ matrix.SOURCE_CONTEXT_DIR }}"
         echo "FROM ${BASE_IMAGE}" > Dockerfile
         echo "RUN chown 1001:root /usr/bin/caddy" >> Dockerfile
-      # env:
-      #   context: ${{ matrix.SOURCE_CONTEXT_DIR }}
-      #   SOURCE_IMAGE_REGISTRY: ${{ matrix.SOURCE_IMAGE_REGISTRY }}
-      #   SOURCE_IMAGE_NAME: ${{ matrix.SOURCE_IMAGE_NAME }}
-      #   SOURCE_IMAGE_TAG: ${{ matrix.SOURCE_IMAGE_TAG }}
 
     - name: Prepare docker tags for image
       id: meta
-      # if: contains(fromJSON('["aries-endorser-db","aries-endorser-agent","aries-endorser-backup","aries-endorser-api","aries-endorser-proxy"]'), matrix.service)
       uses: docker/metadata-action@v5
       with:
         images: ${{ env.GITHUB_IMAGE_REPO }}${{ matrix.service }}
@@ -140,12 +134,6 @@ jobs:
       run: |  
         BASE_IMAGE="${{ matrix.SOURCE_IMAGE_REGISTRY }}${{ matrix.SOURCE_IMAGE_NAME }}:${{ matrix.SOURCE_IMAGE_TAG }}"
         sed -i -e "s;FROM .*;FROM ${BASE_IMAGE};g" "${{ matrix.SOURCE_CONTEXT_DIR }}/${{ matrix.DOCKER_FILE_PATH }}"
-      # env:
-      #   context: ${{ matrix.SOURCE_CONTEXT_DIR }}
-      #   SOURCE_IMAGE_REGISTRY: ${{ matrix.SOURCE_IMAGE_REGISTRY }}
-      #   SOURCE_IMAGE_NAME: ${{ matrix.SOURCE_IMAGE_NAME }}
-      #   SOURCE_IMAGE_TAG: ${{ matrix.SOURCE_IMAGE_TAG }}
-      #   file: ${{ matrix.SOURCE_CONTEXT_DIR }}/${{ matrix.DOCKER_FILE_PATH }}
 
     - name: Extract Tags
       id: extract
