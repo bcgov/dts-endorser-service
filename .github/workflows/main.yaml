@@ -7,42 +7,42 @@ on:
       #   description: 'Service to build and deploy'
       #   required: true
       #   default: 'aries-endorser-agent'
-      git_repo_url:
-        description: 'Git repository URL'
-        required: true
-        default: 'hyperledger/aries-endorser-service'
-      git_ref:
-        description: 'Git reference (branch or tag)'
-        required: false
-        default: ''
-      docker_file_path:
-        description: 'Path to Dockerfile'
-        required: true
-        default: 'Dockerfile.acapy'
-      source_context_dir:
-        description: 'Source context directory for the build'
-        required: true
-        default: 'docker/acapy'
-      source_image_registry:
-        description: 'Source image registry'
-        required: false
-        default: ''
-      source_image_name:
-        description: 'Source image name'
-        required: false
-        default: ''
-      source_image_tag:
-        description: 'Source image tag'
-        required: false
-        default: ''
-      registry_username_secret_name:
-        description: 'Secret name for registry username'
-        required: false
-        default: 'ARTIFACTORY_USERNAME'
-      registry_password_secret_name:
-        description: 'Secret name for registry password'
-        required: false
-        default: 'ARTIFACTORY_PASSWORD'
+      # git_repo_url:
+      #   description: 'Git repository URL'
+      #   required: true
+      #   default: 'hyperledger/aries-endorser-service'
+      # git_ref:
+      #   description: 'Git reference (branch or tag)'
+      #   required: false
+      #   default: ''
+      # docker_file_path:
+      #   description: 'Path to Dockerfile'
+      #   required: true
+      #   default: 'Dockerfile.acapy'
+      # source_context_dir:
+      #   description: 'Source context directory for the build'
+      #   required: true
+      #   default: 'docker/acapy'
+      # source_image_registry:
+      #   description: 'Source image registry'
+      #   required: false
+      #   default: ''
+      # source_image_name:
+      #   description: 'Source image name'
+      #   required: false
+      #   default: ''
+      # source_image_tag:
+      #   description: 'Source image tag'
+      #   required: false
+      #   default: ''
+      # registry_username_secret_name:
+      #   description: 'Secret name for registry username'
+      #   required: false
+      #   default: 'ARTIFACTORY_USERNAME'
+      # registry_password_secret_name:
+      #   description: 'Secret name for registry password'
+      #   required: false
+      #   default: 'ARTIFACTORY_PASSWORD'
   push:
     branches:
       - enhancement
