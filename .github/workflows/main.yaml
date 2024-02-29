@@ -45,7 +45,7 @@ on:
         default: 'ARTIFACTORY_PASSWORD'
   push:
     branches:
-      - workflow
+      - enhancement
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
