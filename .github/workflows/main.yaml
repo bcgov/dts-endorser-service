@@ -2,6 +2,47 @@ name: Build and Deploy Image
 
 on:
   workflow_dispatch:
+    inputs:
+      service:
+        description: 'Service to build and deploy'
+        required: true
+        default: 'aries-endorser-agent'
+      git_repo_url:
+        description: 'Git repository URL'
+        required: true
+        default: 'hyperledger/aries-endorser-service'
+      git_ref:
+        description: 'Git reference (branch or tag)'
+        required: false
+        default: ''
+      docker_file_path:
+        description: 'Path to Dockerfile'
+        required: true
+        default: 'Dockerfile.acapy'
+      source_context_dir:
+        description: 'Source context directory for the build'
+        required: true
+        default: 'docker/acapy'
+      source_image_registry:
+        description: 'Source image registry'
+        required: false
+        default: ''
+      source_image_name:
+        description: 'Source image name'
+        required: false
+        default: ''
+      source_image_tag:
+        description: 'Source image tag'
+        required: false
+        default: ''
+      registry_username_secret_name:
+        description: 'Secret name for registry username'
+        required: false
+        default: 'ARTIFACTORY_USERNAME'
+      registry_password_secret_name:
+        description: 'Secret name for registry password'
+        required: false
+        default: 'ARTIFACTORY_PASSWORD'
   push:
     branches:
       - workflow
@@ -204,69 +245,69 @@ jobs:
         echo "${{ matrix.service }}_digest=${digest}" >> $GITHUB_OUTPUT
         cat $GITHUB_OUTPUT
 
-  deploy2dev:
-    needs: build
-    env:
-      ENVIRONMENT: dev           
-    permissions:
-      packages: write
-    runs-on: ubuntu-latest
-    environment: dev
-    strategy:
-      # Serialize the deployments
-      max-parallel: 1
-      matrix:
-        include:
-          - service: aries-endorser-db
-          - service: aries-endorser-agent
-          - service: aries-endorser-backup
-          - service: aries-endorser-proxy
-          - service: aries-endorser-api
+  # deploy2dev:
+  #   needs: build
+  #   env:
+  #     ENVIRONMENT: dev           
+  #   permissions:
+  #     packages: write
+  #   runs-on: ubuntu-latest
+  #   environment: dev
+  #   strategy:
+  #     # Serialize the deployments
+  #     max-parallel: 1
+  #     matrix:
+  #       include:
+  #         - service: aries-endorser-db
+  #         - service: aries-endorser-agent
+  #         - service: aries-endorser-backup
+  #         - service: aries-endorser-proxy
+  #         - service: aries-endorser-api
   
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
   
-      - name: Deploy to ${{ env.ENVIRONMENT }}
-        uses: ./.github/workflows/actions/deploy
-        with:
-          environment: ${{ env.ENVIRONMENT }}
-          ghcr_token: ${{ secrets.GITHUB_TOKEN }}
-          github_image_name: ${{ env.GITHUB_IMAGE_REPO }}${{ matrix.service }}
-          image_digest: ${{ needs.build.outputs[format ('{0}_digest', matrix.service)] }}
-          openshift_image_name: ${{ env.OPENSHIFT_IMAGE_REPO }}${{ matrix.service }}
-          openshift_server_url: ${{ vars.OPENSHIFT_SERVER_URL }}
-          namespace: ${{ vars.NAMESPACE }}
-          deployment_configuration: ${{ matrix.service }}
-          openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
-          rocketchat_webhook: ${{ secrets.ROCKETCHAT_WEBHOOK }}
+  #     - name: Deploy to ${{ env.ENVIRONMENT }}
+  #       uses: ./.github/workflows/actions/deploy
+  #       with:
+  #         environment: ${{ env.ENVIRONMENT }}
+  #         ghcr_token: ${{ secrets.GITHUB_TOKEN }}
+  #         github_image_name: ${{ env.GITHUB_IMAGE_REPO }}${{ matrix.service }}
+  #         image_digest: ${{ needs.build.outputs[format ('{0}_digest', matrix.service)] }}
+  #         openshift_image_name: ${{ env.OPENSHIFT_IMAGE_REPO }}${{ matrix.service }}
+  #         openshift_server_url: ${{ vars.OPENSHIFT_SERVER_URL }}
+  #         namespace: ${{ vars.NAMESPACE }}
+  #         deployment_configuration: ${{ matrix.service }}
+  #         openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
+  #         rocketchat_webhook: ${{ secrets.ROCKETCHAT_WEBHOOK }}
 
-  # # deploy2test:
-  # #   needs: [build, deploy2dev]
-  # #   env:
-  # #     ENVIRONMENT: test
-  # #   permissions:
-  # #     packages: write
-  # #   runs-on: ubuntu-latest
-  # #   environment: test
+  # deploy2test:
+  #   needs: [build, deploy2dev]
+  #   env:
+  #     ENVIRONMENT: test
+  #   permissions:
+  #     packages: write
+  #   runs-on: ubuntu-latest
+  #   environment: test
 
-  # #   steps:
-  # #     - name: Checkout
-  # #       uses: actions/checkout@v3
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
 
-  # #     - name: deploy to ${{ env.ENVIRONMENT }}
-  # #       uses: ./.github/workflows/actions/deploy
-  # #       with:
-  # #         environment: ${{ env.ENVIRONMENT }}
-  # #         ghcr_token: ${{ secrets.GITHUB_TOKEN }}
-  # #         github_image_name: ${{ env.GITHUB_IMAGE_REPO }}${{ env.APP_NAME }}
-  # #         image_digest: ${{ needs.build.outputs.image_digest }}
-  # #         openshift_image_name: ${{ env.OPENSHIFT_IMAGE_REPO }}${{ env.APP_NAME }}
-  # #         openshift_server_url: ${{ vars.OPENSHIFT_SERVER_URL }}
-  # #         namespace: ${{ vars.NAMESPACE }}
-  # #         deployment_configuration: ${{ env.APP_NAME }}
-  # #         openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
-  # #         rocketchat_webhook: ${{ secrets.ROCKETCHAT_WEBHOOK }}
+  #     - name: deploy to ${{ env.ENVIRONMENT }}
+  #       uses: ./.github/workflows/actions/deploy
+  #       with:
+  #         environment: ${{ env.ENVIRONMENT }}
+  #         ghcr_token: ${{ secrets.GITHUB_TOKEN }}
+  #         github_image_name: ${{ env.GITHUB_IMAGE_REPO }}${{ matrix.service }}
+  #         image_digest: ${{ needs.build.outputs[format ('{0}_digest', matrix.service)] }}
+  #         openshift_image_name: ${{ env.OPENSHIFT_IMAGE_REPO }}${{ matrix.service }}
+  #         openshift_server_url: ${{ vars.OPENSHIFT_SERVER_URL }}
+  #         namespace: ${{ vars.NAMESPACE }}
+  #         deployment_configuration: ${{ matrix.service }}
+  #         openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
+  #         rocketchat_webhook: ${{ secrets.ROCKETCHAT_WEBHOOK }}
 
   # # deploy2prod:
   # #   needs: [build, deploy2dev, deploy2test]
