@@ -174,7 +174,7 @@ jobs:
     - name: Extract Tags
       id: extract
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
-      run: echo "tags=$(echo '${{ steps.meta.outputs.tags }}' | grep -oE ':([^[:space:]]+)' |  sed '/workflow/d' | sed 's/://g' | tr '\n' ' ')" >> $GITHUB_OUTPUT
+      run: echo "tags=$(echo '${{ steps.meta.outputs.tags }}' | grep -oE ':([^[:space:]]+)' |  sed '/enhancement/d' | sed 's/://g' | tr '\n' ' ')" >> $GITHUB_OUTPUT
 
     - name: Pull database image
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
