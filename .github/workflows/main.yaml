@@ -190,8 +190,15 @@ jobs:
         path_context: ${{ matrix.SOURCE_CONTEXT_DIR}}
         builder_image: "${{ matrix.SOURCE_IMAGE_REGISTRY }}${{ matrix.SOURCE_IMAGE_NAME }}:${{ matrix.SOURCE_IMAGE_TAG }}"
         image: ${{ matrix.service }}
-        tags: ${{ steps.extract.outputs.tags }}
+        tags: ${{ steps.extract.outputs.tags }}         
       # labels would have to be added to the image after the S2I build
+
+    - name: Apply Labels to Database Image
+      id: apply_labels
+      if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
+      run: |
+        docker tag ${{ matrix.SOURCE_IMAGE_REGISTRY }}${{ matrix.SOURCE_IMAGE_NAME }}:${{ matrix.SOURCE_IMAGE_TAG }} ${{ matrix.service }}:${{ steps.extract.outputs.tags }}
+        docker push ${{ matrix.SOURCE_IMAGE_REGISTRY }}${{ matrix.SOURCE_IMAGE_NAME }}:${{ matrix.SOURCE_IMAGE_TAG }}
 
     - name: Push database image
       id: push
