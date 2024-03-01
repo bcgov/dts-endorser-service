@@ -197,8 +197,9 @@ jobs:
       id: apply_labels
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
       run: |
-        docker tag ${{ matrix.SOURCE_IMAGE_REGISTRY }}${{ matrix.SOURCE_IMAGE_NAME }}:${{ matrix.SOURCE_IMAGE_TAG }} ${{ matrix.service }}:${{ steps.extract.outputs.tags }}
-        docker push ${{ matrix.SOURCE_IMAGE_REGISTRY }}${{ matrix.SOURCE_IMAGE_NAME }}:${{ matrix.SOURCE_IMAGE_TAG }}
+        docker tag "${{ matrix.SOURCE_IMAGE_REGISTRY }}${{ matrix.SOURCE_IMAGE_NAME }}:${{ matrix.SOURCE_IMAGE_TAG }}" "${{ matrix.service }}:${{ steps.extract.outputs.tags }}"
+        docker push "${{ matrix.SOURCE_IMAGE_REGISTRY }}${{ matrix.SOURCE_IMAGE_NAME }}:${{ matrix.SOURCE_IMAGE_TAG }}"
+    
 
     - name: Push database image
       id: push
