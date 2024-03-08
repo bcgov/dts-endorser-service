@@ -6,46 +6,10 @@ on:
       service:
         description: 'Service to build and deploy'
         required: true
-        default: 'aries-endorser-agent'
-      git_repo_url:
-        description: 'Git repository URL'
-        required: true
-        default: 'hyperledger/aries-endorser-service'
-      git_ref:
-        description: 'Git reference (branch or tag)'
-        required: false
-        default: ''
-      docker_file_path:
-        description: 'Path to Dockerfile'
-        required: true
-        default: 'Dockerfile.acapy'
-      source_context_dir:
-        description: 'Source context directory for the build'
-        required: true
-        default: 'docker/acapy'
-      source_image_registry:
-        description: 'Source image registry'
-        required: false
-        default: ''
-      source_image_name:
-        description: 'Source image name'
-        required: false
-        default: ''
-      source_image_tag:
-        description: 'Source image tag'
-        required: false
-        default: ''
-      registry_username_secret_name:
-        description: 'Secret name for registry username'
-        required: false
-        default: 'ARTIFACTORY_USERNAME'
-      registry_password_secret_name:
-        description: 'Secret name for registry password'
-        required: false
-        default: 'ARTIFACTORY_PASSWORD'
+        default: ""
   push:
     branches:
-      - enhancement
+      - inputs
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -55,6 +19,7 @@ env:
   GITHUB_IMAGE_REPO: ghcr.io/bcgov/dts-endorser-service/
   OPENSHIFT_IMAGE_REPO: image-registry.apps.silver.devops.gov.bc.ca/4a9599-tools/
   APP_NAMES: aries-endorser-agent,aries-endorser-db,aries-endorser-backup,aries-endorser-proxy,aries-endorser-api
+  JSON_INPUT: ${{ github.event.inputs.service }}
 
 jobs:
   build:
@@ -174,7 +139,7 @@ jobs:
     - name: Extract Tags
       id: extract
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
-      run: echo "tags=$(echo '${{ steps.meta.outputs.tags }}' | grep -oE ':([^[:space:]]+)' |  sed '/enhancement/d' | sed 's/://g' | tr '\n' ' ')" >> $GITHUB_OUTPUT
+      run: echo "tags=$(echo '${{ steps.meta.outputs.tags }}' | grep -oE ':([^[:space:]]+)' |  sed '/inputs/d' | sed 's/://g' | tr '\n' ' ')" >> $GITHUB_OUTPUT
 
     - name: Pull database image
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
@@ -199,8 +164,6 @@ jobs:
       run: |
         docker tag "${{ matrix.SOURCE_IMAGE_REGISTRY }}${{ matrix.SOURCE_IMAGE_NAME }}:${{ matrix.SOURCE_IMAGE_TAG }}" "${{ matrix.SERVICE }}:${{ steps.extract.outputs.tags }}"
         docker push "${{ matrix.SERVICE }}:${{ steps.extract.outputs.tags }}"
-    
-    
 
     - name: Push database image
       id: push
