@@ -42,7 +42,7 @@ jobs:
             REGISTRY_USERNAME_SECRET_NAME: ${{ inputs.service.endoser-agent.username_secret_name || '' }} 
             REGISTRY_PASSWORD_SECRET_NAME: ${{ inputs.service.endoser-agent.password_secret_name || '' }}
           - service: aries-endorser-db
-            GIT_REPO_URL: ${{ inputs.service.endoser-db.git_repo_url || 'hyperledger/aries-endorser-db' }}
+            GIT_REPO_URL: ${{ inputs.service.endoser-db.git_repo_url || 'hyperledger/aries-endorser-service' }}
             GIT_REF: ${{ inputs.service.endoser-db.git_ref || '' }}
             SOURCE_CONTEXT_DIR: docker/wallet/config
             SOURCE_IMAGE_REGISTRY: "quay.io/"  
