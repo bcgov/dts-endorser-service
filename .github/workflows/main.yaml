@@ -33,14 +33,14 @@ jobs:
         include:
           - service: aries-endorser-agent
             GIT_REPO_URL: ${{ inputs.service.endoser.agent_git_repo_url || 'hyperledger/aries-endorser-service' }}
-            GIT_REF: ""
-            DOCKER_FILE_PATH: Dockerfile.acapy # The docker path, file, is the relative path to the docker file from the root of the repo.
-            SOURCE_CONTEXT_DIR: docker/acapy   # The context dir, context, sets the context for the build. i.e. where the build will source files from 
-            SOURCE_IMAGE_REGISTRY: ""
-            SOURCE_IMAGE_NAME: ""
-            SOURCE_IMAGE_TAG: ""
-            REGISTRY_USERNAME_SECRET_NAME: "" 
-            REGISTRY_PASSWORD_SECRET_NAME: ""
+            GIT_REF:  ${{ inputs.service.endoser.git_ref || '' }}
+            DOCKER_FILE_PATH: ${{ inputs.service.endoser.docker_file_path || 'Dockerfile.acapy' }} # The docker path, file, is the relative path to the docker file from the root of the repo.
+            SOURCE_CONTEXT_DIR:  ${{ inputs.service.endoser.source_context_dir || 'docker/acapy' }}    # The context dir, context, sets the context for the build. i.e. where the build will source files from 
+            SOURCE_IMAGE_REGISTRY: ${{ inputs.service.endoser.source_image_registry || '' }}
+            SOURCE_IMAGE_NAME: ${{ inputs.service.endoser.source_image_name || '' }}
+            SOURCE_IMAGE_TAG: ${{ inputs.service.endoser.source_image_tag || '' }} 
+            REGISTRY_USERNAME_SECRET_NAME: ${{ inputs.service.endoser.username_secret_name || '' }} 
+            REGISTRY_PASSWORD_SECRET_NAME: ${{ inputs.service.endoser.password_secret_name || '' }}
           - service: aries-endorser-db
             GIT_REPO_URL: hyperledger/aries-endorser-service
             GIT_REF: ""
@@ -139,7 +139,13 @@ jobs:
     - name: Extract Tags
       id: extract
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
-      run: echo "tags=$(echo '${{ steps.meta.outputs.tags }}' | grep -oE ':([^[:space:]]+)' |  sed '/inputs/d' | sed 's/://g' | tr '\n' ' ')" >> $GITHUB_OUTPUT
+      run: |
+        tags=$(echo "${{ steps.meta.outputs.tags }}" | grep -oE ':([^[:space:]]+)' | sed '/label/d' | sed 's/://g' | tr '\n' ' ')
+        single_tag=$(echo "$tags" | cut -d " " -f 1)
+        remaining_tags=$(echo "$tags" | cut -d' ' -f2-)
+        echo "tags=$tags" >> $GITHUB_OUTPUT
+        echo "single_tag=$single_tag" >> $GITHUB_OUTPUT
+        echo "remaining_tags=$remaining_tags" >> $GITHUB_OUTPUT
 
     - name: Pull database image
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
@@ -158,12 +164,21 @@ jobs:
         tags: ${{ steps.extract.outputs.tags }}         
       # labels would have to be added to the image after the S2I build
 
-    - name: Apply Labels to Database Image
+    - name: Apply Labels and tags to Database Image
       id: apply_labels
       if: contains(fromJSON('["aries-endorser-db"]'), matrix.service)
       run: |
-        docker tag "${{ matrix.SOURCE_IMAGE_REGISTRY }}${{ matrix.SOURCE_IMAGE_NAME }}:${{ matrix.SOURCE_IMAGE_TAG }}" "${{ matrix.SERVICE }}:${{ steps.extract.outputs.tags }}"
-        docker push "${{ matrix.SERVICE }}:${{ steps.extract.outputs.tags }}"
+        echo "FROM ${{ steps.build_image.outputs.image }}:${{ steps.extract.outputs.single_tag }}" | docker build -t ${{ steps.build_image.outputs.image }}:${{ steps.extract.outputs.single_tag }}  --label ca.bc.gov.digitaltrust.build.source-location=${{ github.repositoryUrl }} --label ca.bc.gov.digitaltrust.build.commit.id=${{ github.sha }} -
+          
+    - name: Apply Tags to Docker Image
+      run: |
+        remaining_tags="${{ steps.extract.outputs.remaining_tags }}"
+          image_name="${{ steps.build_image.outputs.image }}"
+          IFS=' ' read -r -a tags_array <<< "$remaining_tags"   
+          # Loop through the tags and apply each one to the Docker image
+          for tag in "${tags_array[@]}"; do
+            docker tag "$image_name:${{ steps.extract.outputs.single_tag }}" "$image_name:$tag"
+          done        
 
     - name: Push database image
       id: push
