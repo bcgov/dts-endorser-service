@@ -84,8 +84,8 @@ objects:
       webhook-api-key: ${ACAPY_WEBHOOK_URL_API_KEY}
     type: Opaque
 
-  - kind: DeploymentConfig
-    apiVersion: v1
+  - kind: Deployment
+    apiVersion: apps/v1
     metadata:
       name: ${NAME}${SUFFIX}
       labels:
@@ -95,17 +95,13 @@ objects:
         app-group: ${APP_GROUP}
         role: ${ROLE}
         env: ${TAG_NAME}
-      annotations:
-        description: Defines how to deploy the application server
-        app.openshift.io/connects-to: >-
-          [{"apiVersion":"apps.openshift.io/v1","kind":"DeploymentConfig","name":"${ACAPY_ADMIN_HOST}${SUFFIX}"},
-          {"apiVersion":"apps.openshift.io/v1","kind":"DeploymentConfig","name":"${CONTROLLER_POSTGRESQL_HOST}${SUFFIX}"}]
     spec:
       replicas: 1
       selector:
-        name: ${NAME}${SUFFIX}
+        matchLabels:
+          name: ${NAME}${SUFFIX}
       strategy:
-        type: Rolling
+        type: RollingUpdate
       template:
         metadata:
           name: ${NAME}${SUFFIX}
@@ -195,7 +191,7 @@ objects:
 
                 - name: LOG_LEVEL
                   value: ${LOG_LEVEL}
-              image: " "
+              image: image-registry.openshift-image-registry.svc:5000/${IMAGE_NAMESPACE}/${NAME}:${TAG_NAME}
               ports:
                 - containerPort: ${{ENDORSER_SERVICE_PORT}}
                   protocol: TCP
@@ -226,17 +222,6 @@ objects:
           schedulerName: default-scheduler
           securityContext: {}
           terminationGracePeriodSeconds: 30
-      triggers:
-        - type: ConfigChange
-        - type: ImageChange
-          imageChangeParams:
-            automatic: true
-            containerNames:
-              - ${NAME}${SUFFIX}
-            from:
-              kind: ImageStreamTag
-              name: ${NAME}:${TAG_NAME}
-              namespace: ${IMAGE_NAMESPACE}
 
   - kind: HorizontalPodAutoscaler
     apiVersion: autoscaling/v2
@@ -251,8 +236,8 @@ objects:
         env: ${TAG_NAME}
     spec:
       scaleTargetRef:
-        apiVersion: apps.openshift.io/v2
-        kind: DeploymentConfig
+        apiVersion: apps/v1
+        kind: Deployment
         name: ${NAME}${SUFFIX}
       minReplicas: ${{MIN_REPLICAS}}
       maxReplicas: ${{MAX_REPLICAS}}
