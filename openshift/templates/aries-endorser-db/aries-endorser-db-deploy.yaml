@@ -18,22 +18,12 @@ objects:
         env: ${TAG_NAME}
     spec:
       description: |
-        Allow the api(s) and the backup container to access the db.
+        Allow the api(s) to access the db.
       ingress:
         - from:
             - podSelector:
                 matchLabels:
                   role: ${CONTROLLER_ROLE}
-                  app: ${APP_NAME}${SUFFIX}
-                  app-group: ${APP_GROUP}
-                  env: ${TAG_NAME}
-              namespaceSelector:
-                matchLabels:
-                  name: ${NAMESPACE_NAME}
-                  environment: ${TAG_NAME}
-            - podSelector:
-                matchLabels:
-                  role: ${BACKUP_ROLE}
                   app: ${APP_NAME}${SUFFIX}
                   app-group: ${APP_GROUP}
                   env: ${TAG_NAME}
@@ -272,11 +262,6 @@ parameters:
       allow the backup container access to this pod
     required: true
     value: "true"
-  - name: BACKUP_ROLE
-    displayName: Backup Role
-    description: The role of the backup container - used for Network Policies
-    required: true
-    value: backup
   - name: IMAGE_NAMESPACE
     displayName: Image Namespace
     required: true
