@@ -193,10 +193,10 @@ function cleanResources() {
 
 function getSetting() {
   namespace=${1}
-  dcName=${2}
+  dName=${2}
   settingName=${3}
-  deploymentConfig=$(oc -n ${namespace} get dc ${dcName} -o json)
-  setting=$(${JQ_EXE} -nr "${deploymentConfig} | .spec.template.spec.containers[].env[] | select(.name==\"${settingName}\") | .value")
+  deployment=$(oc -n ${namespace} get deployment ${dName} -o json)
+  setting=$(${JQ_EXE} -nr "${deployment} | .spec.template.spec.containers[].env[] | select(.name==\"${settingName}\") | .value")
   echo "${setting}"
 }
 
