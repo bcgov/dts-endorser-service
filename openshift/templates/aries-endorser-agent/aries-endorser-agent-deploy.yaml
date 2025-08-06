@@ -170,6 +170,8 @@ objects:
                   value: ${AGENT_BASE_WS_URL}
                 - name: ACAPY_IMAGE_URL
                   value: ${ACAPY_IMAGE_URL}
+                - name: ACAPY_NO_LEDGER
+                  value: ${ACAPY_NO_LEDGER}
                 - name: ACAPY_READ_ONLY_LEDGER
                   value: ${ACAPY_READ_ONLY_LEDGER}
                 - name: ACAPY_GENESIS_URL
@@ -380,9 +382,19 @@ parameters:
 
   - name: ACAPY_READ_ONLY_LEDGER
     displayName: Set read only ledger flag.
-    description: Enable/Disable the read only ledger flag.  Controls the inclusion/exclusion of the agent '--read-only-ledger' startup parameter.  Defaults to disabled.
+    description: Enable/Disable the read only ledger flag.  Controls the inclusion/exclusion of the agent '--read-only-ledger' startup parameter.  Defaults to read-only.
     required: true
     value: 'true'
+  - name: ACAPY_NO_LEDGER
+    displayName: Set no ledger flag.
+    description: Enable/Disable the no ledger flag.  If set, starts the agent without requiring a ledger list or genesis to be specified, useful for WebVH endorser.  Defaults to enabled ledger.
+    required: true
+    value: 'false'
+  - name: ACAPY_GENESIS_URL
+    displayName: Genesis File URL
+    description: The URL from which the genesis file can be downloaded.
+    required: false
+    value: https://raw.githubusercontent.com/sovrin-foundation/sovrin/stable/sovrin/pool_transactions_sandbox_genesis
 
   - name: ADMIN_API_KEY
     displayName: Agent Admin API Key
@@ -462,11 +474,6 @@ parameters:
     description: The URL of the image for the agent
     required: false
     value:
-  - name: ACAPY_GENESIS_URL
-    displayName: Genesis File URL
-    description: The URL from which the genesis file can be downloaded.
-    required: true
-    value: https://raw.githubusercontent.com/sovrin-foundation/sovrin/stable/sovrin/pool_transactions_sandbox_genesis
 
   - name: ACAPY_ENDORSER_ROLE
     displayName: Endorser Role
