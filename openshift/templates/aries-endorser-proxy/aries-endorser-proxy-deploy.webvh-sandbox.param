@@ -6,7 +6,7 @@
 NAME=aries-endorser-proxy
 APP_NAME=aries-endorser-service
 ROLE=proxy
-TAG_NAME=sandbox
+TAG_NAME=prod
 NAMESPACE=a99fd4
 SUFFIX=-webvh-sandbox
 APP_GROUP=aries-endorser-service
