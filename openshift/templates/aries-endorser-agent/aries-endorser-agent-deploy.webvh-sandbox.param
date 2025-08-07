@@ -32,6 +32,7 @@ AGENT_BASE_WS_URL=wss://aries-endorser-agent-webvh-sandbox.apps.silver.devops.go
 ACAPY_IMAGE_URL=
 ACAPY_GENESIS_URL=
 ACAPY_PLUGIN=[webvh]
+ACAPY_PLUGIN_CONFIG=<--set config in here once configmap created-->
 ACAPY_ENDORSER_ROLE=endorser
 ACAPY_LABEL=Government of British Columbia - WebVH Sandbox Endorser
 ACAPY_WALLET_TYPE=askar-anoncreds

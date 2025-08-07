@@ -53,6 +53,21 @@ objects:
           app: ${APP_NAME}${SUFFIX}
           env: ${TAG_NAME}
 
+  - kind: ConfigMap
+    apiVersion: v1
+    metadata:
+      name: ${NAME}${SUFFIX}-config
+      labels:
+        app: ${APP_NAME}${SUFFIX}
+        name: ${NAME}${SUFFIX}-config
+        app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
+        app-group: ${APP_GROUP}
+        role: ${ROLE}
+        env: ${TAG_NAME}
+    data: 
+      "plugin-config.yml": |
+        ${ACAPY_PLUGIN_CONFIG}
+
   - kind: Service
     apiVersion: v1
     metadata:
@@ -254,7 +269,7 @@ objects:
                 - name: ACAPY_PLUGIN
                   value: ${ACAPY_PLUGIN}
                 - name: ACAPY_PLUGIN_CONFIG
-                  value: ${ACAPY_PLUGIN_CONFIG}
+                  value: plugin-config.yml
 
                 - name: ACAPY_LOG_LEVEL
                   value: ${LOG_LEVEL}
@@ -282,7 +297,12 @@ objects:
                 initialDelaySeconds: 300
                 httpGet:
                   path: /status/live
-                  port: ${{AGENT_ADMIN_PORT}}
+                  port: ${{AGENT_ADMIN_PORT}} 
+              volumeMounts:
+              - name: config
+                mountPath: "/home/aries/plugin-config.yml"
+                subPath: "plugin-config.yml"
+                readOnly: true
               imagePullPolicy: IfNotPresent
               resources:
                 limits:
@@ -293,6 +313,10 @@ objects:
                   memory: ${MEMORY_REQUEST}
               terminationMessagePath: /dev/termination-log
               terminationMessagePolicy: File
+          volumes:
+          - name: config
+            configMap:
+              name: ${NAME}${SUFFIX}-config
           dnsPolicy: ClusterFirst
           restartPolicy: Always
           schedulerName: default-scheduler
