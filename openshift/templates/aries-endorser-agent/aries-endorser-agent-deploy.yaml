@@ -250,6 +250,11 @@ objects:
                     secretKeyRef:
                       name: ${NAME}${SUFFIX}
                       key: admin-api-key
+                
+                - name: ACAPY_PLUGIN
+                  value: ${ACAPY_PLUGIN}
+                - name: ACAPY_PLUGIN_CONFIG
+                  value: ${ACAPY_PLUGIN_CONFIG}
 
                 - name: ACAPY_LOG_LEVEL
                   value: ${LOG_LEVEL}
@@ -550,6 +555,17 @@ parameters:
   - name: WALLET_SUFFIX
     displayName: Wallet Suffix
     description: The suffix attached to the wallet
+    required: false
+    value:
+
+  - name: ACAPY_PLUGIN
+    displayName: Plugin list
+    description: Plugin list
+    required: false
+    value:
+  - name: ACAPY_PLUGIN_CONFIG
+    displayName: Plugin configuration file
+    description: Plugin configuration file
     required: false
     value:
   # ===============================================================================

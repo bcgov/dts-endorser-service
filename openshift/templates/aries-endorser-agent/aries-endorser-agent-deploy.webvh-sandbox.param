@@ -31,6 +31,7 @@ AGENT_BASE_URL=https://aries-endorser-agent-webvh-sandbox.apps.silver.devops.gov
 AGENT_BASE_WS_URL=wss://aries-endorser-agent-webvh-sandbox.apps.silver.devops.gov.bc.ca
 ACAPY_IMAGE_URL=
 ACAPY_GENESIS_URL=
+ACAPY_PLUGIN=[webvh]
 ACAPY_ENDORSER_ROLE=endorser
 ACAPY_LABEL=Government of British Columbia - WebVH Sandbox Endorser
 ACAPY_WALLET_TYPE=askar-anoncreds
