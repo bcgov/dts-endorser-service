@@ -53,6 +53,21 @@ objects:
           app: ${APP_NAME}${SUFFIX}
           env: ${TAG_NAME}
 
+  - kind: ConfigMap
+    apiVersion: v1
+    metadata:
+      name: ${NAME}${SUFFIX}-config
+      labels:
+        app: ${APP_NAME}${SUFFIX}
+        name: ${NAME}${SUFFIX}-config
+        app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
+        app-group: ${APP_GROUP}
+        role: ${ROLE}
+        env: ${TAG_NAME}
+    data: 
+      "plugin-config.yml": |
+        ${ACAPY_PLUGIN_CONFIG}
+
   - kind: Service
     apiVersion: v1
     metadata:
@@ -170,6 +185,8 @@ objects:
                   value: ${AGENT_BASE_WS_URL}
                 - name: ACAPY_IMAGE_URL
                   value: ${ACAPY_IMAGE_URL}
+                - name: ACAPY_NO_LEDGER
+                  value: ${ACAPY_NO_LEDGER}
                 - name: ACAPY_READ_ONLY_LEDGER
                   value: ${ACAPY_READ_ONLY_LEDGER}
                 - name: ACAPY_GENESIS_URL
@@ -248,6 +265,11 @@ objects:
                     secretKeyRef:
                       name: ${NAME}${SUFFIX}
                       key: admin-api-key
+                
+                - name: ACAPY_PLUGIN
+                  value: ${ACAPY_PLUGIN}
+                - name: ACAPY_PLUGIN_CONFIG
+                  value: plugin-config.yml
 
                 - name: ACAPY_LOG_LEVEL
                   value: ${LOG_LEVEL}
@@ -275,7 +297,12 @@ objects:
                 initialDelaySeconds: 300
                 httpGet:
                   path: /status/live
-                  port: ${{AGENT_ADMIN_PORT}}
+                  port: ${{AGENT_ADMIN_PORT}} 
+              volumeMounts:
+              - name: config
+                mountPath: "/home/aries/plugin-config.yml"
+                subPath: "plugin-config.yml"
+                readOnly: true
               imagePullPolicy: IfNotPresent
               resources:
                 limits:
@@ -286,6 +313,10 @@ objects:
                   memory: ${MEMORY_REQUEST}
               terminationMessagePath: /dev/termination-log
               terminationMessagePolicy: File
+          volumes:
+          - name: config
+            configMap:
+              name: ${NAME}${SUFFIX}-config
           dnsPolicy: ClusterFirst
           restartPolicy: Always
           schedulerName: default-scheduler
@@ -380,9 +411,19 @@ parameters:
 
   - name: ACAPY_READ_ONLY_LEDGER
     displayName: Set read only ledger flag.
-    description: Enable/Disable the read only ledger flag.  Controls the inclusion/exclusion of the agent '--read-only-ledger' startup parameter.  Defaults to disabled.
+    description: Enable/Disable the read only ledger flag.  Controls the inclusion/exclusion of the agent '--read-only-ledger' startup parameter.  Defaults to read-only.
     required: true
     value: 'true'
+  - name: ACAPY_NO_LEDGER
+    displayName: Set no ledger flag.
+    description: Enable/Disable the no ledger flag.  If set, starts the agent without requiring a ledger list or genesis to be specified, useful for WebVH endorser.  Defaults to enabled ledger.
+    required: true
+    value: 'false'
+  - name: ACAPY_GENESIS_URL
+    displayName: Genesis File URL
+    description: The URL from which the genesis file can be downloaded.
+    required: false
+    value: https://raw.githubusercontent.com/sovrin-foundation/sovrin/stable/sovrin/pool_transactions_sandbox_genesis
 
   - name: ADMIN_API_KEY
     displayName: Agent Admin API Key
@@ -462,11 +503,6 @@ parameters:
     description: The URL of the image for the agent
     required: false
     value:
-  - name: ACAPY_GENESIS_URL
-    displayName: Genesis File URL
-    description: The URL from which the genesis file can be downloaded.
-    required: true
-    value: https://raw.githubusercontent.com/sovrin-foundation/sovrin/stable/sovrin/pool_transactions_sandbox_genesis
 
   - name: ACAPY_ENDORSER_ROLE
     displayName: Endorser Role
@@ -543,6 +579,17 @@ parameters:
   - name: WALLET_SUFFIX
     displayName: Wallet Suffix
     description: The suffix attached to the wallet
+    required: false
+    value:
+
+  - name: ACAPY_PLUGIN
+    displayName: Plugin list
+    description: Plugin list
+    required: false
+    value:
+  - name: ACAPY_PLUGIN_CONFIG
+    displayName: Plugin configuration file
+    description: Plugin configuration file
     required: false
     value:
   # ===============================================================================

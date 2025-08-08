@@ -72,12 +72,12 @@ parameters:
     displayName: Source Context Directory
     description: The source context directory.
     required: false
-    value: endorser
+    value: .
   - name: DOCKER_FILE_PATH
     displayName: Docker File Path
     description: The path to the docker file defining the build.
     required: false
-    value: Dockerfile.endorser
+    value: endorser/Dockerfile.endorser
   - name: SOURCE_IMAGE_KIND
     displayName: Source Image Kind
     required: true
@@ -97,7 +97,7 @@ parameters:
     displayName: Source Image Tag
     required: true
     description: The tag of the source image.
-    value: 3.10-slim-buster
+    value: 3.13-slim-bookworm
   - name: OUTPUT_IMAGE_TAG
     displayName: Output Image Tag
     description: The tag given to the built image.
