@@ -82,6 +82,7 @@ objects:
     stringData:
       endorser-admin-api-key: ${ENDORSER_API_ADMIN_KEY}
       webhook-api-key: ${ACAPY_WEBHOOK_URL_API_KEY}
+      jwt-secret-key: ${JWT_SECRET_KEY}
     type: Opaque
 
   - kind: Deployment
@@ -169,6 +170,11 @@ objects:
                     secretKeyRef:
                       name: ${NAME}${SUFFIX}
                       key: endorser-admin-api-key
+                - name: JWT_SECRET_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${NAME}${SUFFIX}
+                      key: jwt-secret-key
 
                 - name: ENDORSER_ENV
                   value: ${TAG_NAME}
@@ -207,7 +213,7 @@ objects:
                 httpGet:
                   path: "/"
                   port: ${{ENDORSER_SERVICE_PORT}}
-              imagePullPolicy: IfNotPresent
+              imagePullPolicy: Always
               resources:
                 limits:
                   cpu: ${CPU_LIMIT}
@@ -325,6 +331,12 @@ parameters:
   - name: ENDORSER_API_ADMIN_KEY
     displayName: Agent Admin API Key
     description: The key used to authenticate client requests to the admin api.
+    required: false
+    generate: expression
+    from: "[a-zA-Z0-9]{32}"
+  - name: JWT_SECRET_KEY
+    displayName: JWT Secret Key
+    description: The key used to generate JWT auth tokens..
     required: false
     generate: expression
     from: "[a-zA-Z0-9]{32}"

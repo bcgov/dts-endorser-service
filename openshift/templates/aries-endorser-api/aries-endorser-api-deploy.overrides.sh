@@ -15,11 +15,13 @@ if createOperation; then
   printStatusMsg "Create operation detected ...\nPrompting for <tbd> secret... \n"
   readParameter "ENDORSER_API_ADMIN_KEY - Please provide the key for the controller Admin API.  If left blank, a 32 character long base64 encoded value will be randomly generated using openssl:" ENDORSER_API_ADMIN_KEY $(generateKey 32) "false"
   readParameter "ACAPY_WEBHOOK_URL_API_KEY - Please provide the key for the controller's webhook.  If left blank, a 32 character long base64 encoded value will be randomly generated using openssl:" ACAPY_WEBHOOK_URL_API_KEY $(generateKey 32) "false"
+  readParameter "JWT_SECRET_KEY - Please provide the key for the JWT.  If left blank, a 32 character long base64 encoded value will be randomly generated using openssl:" JWT_SECRET_KEY $(generateKey 32) "false"
 else
   # Secrets are removed from the configurations during update operations ...
   printStatusMsg "Update operation detected ...\nSkipping the prompts for <tbd> secret... \n"
   writeParameter "ENDORSER_API_ADMIN_KEY" "prompt_skipped" "false"
   writeParameter "ACAPY_WEBHOOK_URL_API_KEY" "prompt_skipped" "false"
+  writeParameter "JWT_SECRET_KEY" "prompt_skipped" "false"
 fi
 
 SPECIALDEPLOYPARMS="--param-file=${_overrideParamFile}"
