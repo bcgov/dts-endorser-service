@@ -1,8 +1,9 @@
 author_did,schema_name,version,details
-BQu1v6o9Z9ttkdwbVqpyZB,contractor-credential,*,https://github.com/bcgov/digital-trust-toolkit/blob/contractor-credential/docs/governance/employment/contractor-credential/governance.md#261-schema-definition
+BQu1v6o9Z9ttkdwbVqpyZB,contractor-credential,*,https://developer.gov.bc.ca/docs/default/component/digital-trust/governance/employment/contractor-credential/governance
 Ttmj1pEotg8FbKZZD81S7i,LCRBSirSes,1.0.0,T.B.D.
-K9igebFysBL6jcBwR8bKuN,Digital Business Card,1.0.0,T.B.D.
+K9igebFysBL6jcBwR8bKuN,Digital Business Card,1.0.0,https://developer.gov.bc.ca/docs/default/component/digital-trust/governance/business/digital-business-card-v1
 RycQpZ9b4NaXuT5ZGjXkUE,app_attestation,1.0,T.B.D.
-KCxVC8GkKywjhWJnUfCmkW,Person,1.0,T.B.D.
-MLvtJW6pFuYu4NnMB14d29,legal-professional,1.0,https://github.com/bcgov/digital-trust-toolkit/blob/lsbc-governance/docs/governance/justice/legal-professional/governance.md
-ARK5s3QZtjL5X65mLoubdk,Rental Property Business Licence,1.0,T.B.D.
+KCxVC8GkKywjhWJnUfCmkW,Person,1.0,https://developer.gov.bc.ca/docs/default/component/digital-trust/governance/person/person-cred-doc
+MLvtJW6pFuYu4NnMB14d29,legal-professional,1.0,https://developer.gov.bc.ca/docs/default/component/digital-trust/governance/justice/legal-professional/governance
+ARK5s3QZtjL5X65mLoubdk,Rental Property Business Licence,1.0,https://developer.gov.bc.ca/docs/default/component/digital-trust/governance/business/rental-property-business-licence
+Tm3dXMR3UsSU4X9Ew913Um,property-owner,1.1.0,Property Owner Credential
