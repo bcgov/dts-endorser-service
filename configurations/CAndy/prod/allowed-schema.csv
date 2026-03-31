@@ -1,11 +1,12 @@
 author_did,schema_name,version,details
-RGjWbW1eycP7FrMf4QJvX8,Person,1.0,
+RGjWbW1eycP7FrMf4QJvX8,Person,1.0,https://developer.gov.bc.ca/docs/default/component/digital-trust/governance/person/person-cred-doc
 E2h4RUJxyh48PLJ1CtGJrq,BC VC Pilot Certificate,1.0.1,
 A2UZSmrL9N5FDZGPu68wy,bc-mines-act-permit,1.0,
-AcZpBDz3oxmKrpcuPcdKai,Digital Business Card,1.0.0,
-A2UZSmrL9N5FDZGPu68wy,bc-mines-act-permit,1.1.1,
+AcZpBDz3oxmKrpcuPcdKai,Digital Business Card,1.0.0,https://developer.gov.bc.ca/docs/default/component/digital-trust/governance/business/digital-business-card-v1
+A2UZSmrL9N5FDZGPu68wy,bc-mines-act-permit,1.1.1,https://developer.gov.bc.ca/docs/default/component/digital-trust/governance/mining/bc-mines-act-permit/1.1.1/governance/
 XqaRXJt4sXE6TRpfGpVbGw,app_attestation,1.0,
 4WW6792ksq62UroZyfd6nQ,LCRBSirSes,1.0.0,
-B8B9jho4L57A1f6MmXpAbu,contractor-credential,1.0,https://github.com/bcgov/digital-trust-toolkit/blob/contractor-credential/docs/governance/employment/contractor-credential/governance.md#261-schema-definition
-QzLYGuAebsy3MXQ6b1sFiT,legal-professional,1.0,https://github.com/bcgov/digital-trust-toolkit/blob/lsbc-governance/docs/governance/justice/legal-professional/governance.md
-R12pguaP3VF2WiE6vAsiPF,Rental Property Business Licence,1.0,
+B8B9jho4L57A1f6MmXpAbu,contractor-credential,1.0,https://developer.gov.bc.ca/docs/default/component/digital-trust/governance/employment/contractor-credential/governance
+QzLYGuAebsy3MXQ6b1sFiT,legal-professional,1.0,https://developer.gov.bc.ca/docs/default/component/digital-trust/governance/justice/legal-professional/governance
+R12pguaP3VF2WiE6vAsiPF,Rental Property Business Licence,1.0,https://developer.gov.bc.ca/docs/default/component/digital-trust/governance/business/rental-property-business-licence
+JqrH76X8ETpUaNx6TTiP4i,property-owner,1.0.4,
